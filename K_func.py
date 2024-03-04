@@ -15,7 +15,3 @@ def translate_ko_terms(ko_terms):
             print(f"Error retrieving information for {ko}: {e}")
             ko_descriptions[ko] = ko  # Use the KO term itself if the name can't be retrieved
     return ko_descriptions
-
-# Translate selected KO terms to their descriptions
-selected_ko_terms_list = list(sorted_features)  # Assuming sorted_features contains your selected KO terms
-ko_descriptions_mapping = translate_ko_terms_with_find(selected_ko_terms_list)
