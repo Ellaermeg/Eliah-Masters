@@ -1,7 +1,7 @@
 from bioservices import KEGG
 kegg = KEGG()
 
-def translate_ko_terms_with_find(ko_terms):
+def translate_ko_terms(ko_terms):
     ko_descriptions = {}
     for ko in ko_terms:
         try:
