@@ -1,5 +1,6 @@
 
 import numpy as np
+import sys
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -13,6 +14,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder
 import zipfile
 from bioservices import KEGG
+sys.path.append('../Datasets')
 
 
 class DataProcessor:
