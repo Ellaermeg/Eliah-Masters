@@ -69,8 +69,6 @@ class KOProcessor(DataProcessor):
 class GOProcessor(DataProcessor):
     def preprocess_terms(self, terms_data):
 
-
-
         return X_filtered_df
     def preprocess_traits(self, traits_data):
         
