@@ -35,7 +35,7 @@ class DataProcessor:
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 with zip_ref.open(csv_path) as file:
-                    data = pd.read_csv(file, index_col=0, sep=';')
+                    data = pd.read_csv(file, index_col=0, sep=None)
                 print("Data loaded successfully:")
                 print(data.head())
                 return data
