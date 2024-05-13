@@ -39,7 +39,7 @@ class DataProcessor:
                 print("Data loaded successfully:")
                 print(data.head())
                 return data
-        except zipfile.BadZiåFile:
+        except zipfile.BadZipFile:
             print("Error: Bad Zip")
         except FileNotFoundError:
             print("Error: file not found")
@@ -58,6 +58,7 @@ class KOProcessor(DataProcessor):
     def preprocess_terms(self, terms_data):
         terms_data['value'] = 1
         X_terms = terms_data.pivot_table(index='key', columns='KO', values='value', fill_value=0)
+
         # Variance threshold for removal of features
         selector = VarianceThreshold(threshold=0.01)
         X_filtered = selector.fit_transform(X_terms)
