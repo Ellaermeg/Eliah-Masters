@@ -32,11 +32,20 @@ class DataProcessor:
         self.traits_csv_path = traits_csv_path
 
     def load_data_from_zip(self, zip_path, csv_path):
-        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
-            with zip_ref.open(csv_path) as file:
-                data = pd.read_csv(file, index_col=0)
-        return data
-
+        try:
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                with zip_ref.open(csv_path) as file:
+                    data = pd.read_csv(file, index_col=0, sep=';')
+                print("Data loaded successfully:")
+                print(data.head())
+                return data
+        except zipfile.BadZiåFile:
+            print("Error: Bad Zip")
+        except FileNotFoundError:
+            print("Error: file not found")
+        except Exception as e:
+            print(f'An error has occured: {e}')
+    
     def preprocess_terms(self, terms_data):
         raise NotImplementedError("Use subclasses, eg: traits_data .")
 
@@ -46,18 +55,16 @@ class DataProcessor:
 
 
 class KOProcessor(DataProcessor):
-    def KO_preprocess_terms(self, terms_data):
-
+    def preprocess_terms(self, terms_data):
         terms_data['value'] = 1
         X_terms = terms_data.pivot_table(index='key', columns='KO', values='value', fill_value=0)
-
         # Variance threshold for removal of features
         selector = VarianceThreshold(threshold=0.01)
         X_filtered = selector.fit_transform(X_terms)
         X_filtered_df = pd.DataFrame(X_filtered, index=X_terms.index, columns=X_terms.columns[selector.get_support()])
         return X_filtered_df
 
-    def KO_preprocess_traits_oxygen(self, traits_data):
+    def preprocess_traits_oxygen(self, traits_data):
         traits_data['oxygen'] = traits_data['oxygen'].str.lower()
         traits_data['oxygen'] = traits_data['oxygen'].map({
             'aerobic': 'aerobic',
@@ -71,6 +78,20 @@ class KOProcessor(DataProcessor):
         })
         y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]})
         return y
+    
+    def align_data(self, X, y):
+        # Find common keys after removing missing values
+        common_keys = X.index.intersection(y.index)
+
+        # Align X (features) and Y (labels) based on common keys
+        X_aligned = X.loc[common_keys]
+        Y_aligned = y.loc[common_keys].values.ravel()
+
+        # Ensures X_aligned and Y_aligned are aligned
+        assert X_aligned.shape[0] == len(Y_aligned), "X and Y are not aligned"
+
+        return X_aligned, Y_aligned
+
 
 
 class GOProcessor(DataProcessor):
@@ -101,6 +122,19 @@ class GOProcessor(DataProcessor):
         })
         y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]})
         return y
+
+    def align_data(self, X, y):
+        # Find common keys after removing missing values
+        common_keys = X.index.intersection(y.index)
+
+        # Align X (features) and Y (labels) based on common keys
+        X_aligned = X.loc[common_keys]
+        Y_aligned = y.loc[common_keys].values.ravel()
+
+        # Ensures X_aligned and Y_aligned are aligned
+        assert X_aligned.shape[0] == len(Y_aligned), "X and Y are not aligned"
+
+        return X_aligned, Y_aligned
 
 '''class COGsProcessor(DataProcessor):
     #def preprocess_terms(self, terms_data):
