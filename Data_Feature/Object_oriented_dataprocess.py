@@ -32,19 +32,21 @@ class DataProcessor:
         self.traits_csv_path = traits_csv_path
 
     def load_data_from_zip(self, zip_path, csv_path):
-        try:
+        #try:
+            print("THIS IS CSV PATH", csv_path)
+            print("THIS IS ZIP PATH", zip_path)
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 with zip_ref.open(csv_path) as file:
-                    data = pd.read_csv(file, index_col=0, sep=None) #Skjer noe wack her tror jeg
+                    data = pd.read_csv(file, sep=None) #Skjer noe wack her tror jeg
                 print("Data loaded successfully:")
                 print(data.head())
                 return data
-        except zipfile.BadZipFile:
-            print("Error: Bad Zip")
-        except FileNotFoundError:
-            print("Error: file not found")
-        except Exception as e:
-            print(f'An error has occured: {e}')
+        #except zipfile.BadZipFile:
+         #   print("Error: Bad Zip")
+        #except FileNotFoundError:
+         #   print("Error: file not found")
+        #except Exception as e:
+         #   print(f'An error has occured: {e}')
     
     def preprocess_terms(self, terms_data):
         raise NotImplementedError("Use subclasses, eg: traits_data .")
@@ -78,7 +80,7 @@ class KOProcessor(DataProcessor):
             'facultative': 'aerobic'  
         })
         y = traits_data.dropna(subset=['oxygen'])
-        y = y.groupby('key')
+        y = y.groupby(by = 'key', level = 0) # FUCK DETTE
         y = y.agg({'oxygen': lambda x: x.value_counts().index[0]}) # Something wierd is going on here
         return y
     
@@ -101,7 +103,7 @@ class GOProcessor(DataProcessor):
 
     def preprocess_terms(self, terms_data): 
 
-        terms_data["value"] = 1
+        terms_data["value"] = 0
         X_terms = terms_data.pivot_table(index = "key", columns = "GO", values = "value", fill_value=0)
 
         # Variance threshold for feature removal
