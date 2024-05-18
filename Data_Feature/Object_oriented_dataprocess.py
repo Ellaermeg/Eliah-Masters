@@ -77,7 +77,9 @@ class KOProcessor(DataProcessor):
             'conflict': 'aerobic',  
             'facultative': 'aerobic'  
         })
-        y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]}) # Something wierd is going on here
+        y = traits_data.dropna(subset=['oxygen'])
+        y = y.groupby('key')
+        y = y.agg({'oxygen': lambda x: x.value_counts().index[0]}) # Something wierd is going on here
         return y
     
     def align_data(self, X, y):
