@@ -35,7 +35,7 @@ class DataProcessor:
         try:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 with zip_ref.open(csv_path) as file:
-                    data = pd.read_csv(file, index_col=0, sep=None)
+                    data = pd.read_csv(file, index_col=0, sep=None) #Skjer noe wack her tror jeg
                 print("Data loaded successfully:")
                 print(data.head())
                 return data
@@ -77,7 +77,7 @@ class KOProcessor(DataProcessor):
             'conflict': 'aerobic',  
             'facultative': 'aerobic'  
         })
-        y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]})
+        y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]}) # Something wierd is going on here
         return y
     
     def align_data(self, X, y):
