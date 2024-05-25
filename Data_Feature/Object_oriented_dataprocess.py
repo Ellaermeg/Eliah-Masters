@@ -156,7 +156,7 @@ class ModelPipeline:
     def __init__(self, X, y):
         self.X = X
         self.y = y
-
+ 
     def setup_pipeline(self):
         # Define the pipeline with steps and parameter grid
         pass
@@ -168,3 +168,77 @@ class ModelPipeline:
     def evaluate_model(self):
         # Calculate metrics, plot confusion matrix, etc.
         pass
+
+
+'''
+# Assuming X_aligned and Y_aligned are already defined and imported
+def get_feature_importance(model, X, Y):
+    model.fit(X, Y)
+    if hasattr(model, 'feature_importances_'):
+        importances = model.feature_importances_
+    else:
+        importances = abs(model.coef_[0])
+    sorted_indices = np.argsort(importances)[::-1]
+    top_k_indices = sorted_indices[:10]
+    selected_features = X.columns[top_k_indices]
+    sorted_scores = importances[top_k_indices]
+    return selected_features, sorted_scores
+
+def visualize_importance(features, scores, model_name):
+    translated_features = translate_ko_terms(list(features))  # Assuming translation function exists
+    plt.figure(figsize=(10, 8))
+    plt.bar(range(len(features)), scores, tick_label=translated_features)
+    plt.xticks(rotation='vertical', fontsize=8)
+    plt.xlabel('KO Descriptions')
+    plt.ylabel('Importance Scores' if model_name.startswith('RandomForest') else 'Coefficient Magnitudes')
+    plt.title(f'Top 10 KO Descriptions by {model_name} Importance')
+    plt.tight_layout()
+    plt.show()
+
+def map_ko_to_pathways(ko_terms):
+    kegg = KEGG()
+    pathways = {}
+    for ko in ko_terms:
+        gene_links = kegg.link("pathway", ko)
+        if gene_links:
+            for entry in gene_links.strip().split("\n"):
+                split_entry = entry.split("\t")
+                if len(split_entry) >= 2:
+                    ko_id, pathway_id = split_entry[0], split_entry[1]
+                    pathways.setdefault(pathway_id, set()).add(ko)
+    return pathways
+
+def visualize_network(ko_terms, pathways):
+    G = nx.Graph()
+    kegg = KEGG()
+    for ko in ko_terms:
+        G.add_node(ko, title=ko, label=ko, color='red', size=20)
+    for pathway_id, kos in pathways.items():
+        pathway_info = kegg.get(pathway_id)
+        pathway_name = kegg.parse(pathway_info).get('NAME', ['Unknown'])[0]
+        G.add_node(pathway_name, title=pathway_name, label=pathway_name, color='blue', size=30)
+        for ko in kos:
+            G.add_edge(ko, pathway_name)
+
+    nt = Network("800px", "1200px", notebook=True, heading='Interactive Network of KO Terms and Pathways', bgcolor="#ffffff", font_color="black")
+    nt.from_nx(G)
+    nt.toggle_physics(True)
+    nt.show_buttons(filter_=['physics'])
+    nt.save_graph("ko_pathways_network.html")
+    return nt
+
+# Model Selection
+model_choice = 'random_forest'  # 'random_forest' or 'logistic_regression'
+model = RandomForestClassifier(n_estimators=100, random_state=42) if model_choice == 'random_forest' else LogisticRegression()
+model_name = 'RandomForest Classifier' if model_choice == 'random_forest' else 'Logistic Regression'
+
+selected_features, sorted_scores = get_feature_importance(model, X_aligned, Y_aligned)
+visualize_importance(selected_features, sorted_scores, model_name)
+
+# Pathway analysis test 
+ko_terms = selected_features
+pathways = map_ko_to_pathways(ko_terms)
+nt = visualize_network(ko_terms, pathways)
+nt.save_graph("ko_pathways_network.html")
+
+'''
