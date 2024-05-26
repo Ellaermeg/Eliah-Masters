@@ -32,7 +32,7 @@ class DataProcessor:
         self.traits_csv_path = traits_csv_path
 
     def load_data_from_zip(self, zip_path, csv_path):
-        #try:
+        try:
             print("THIS IS CSV PATH", csv_path)
             print("THIS IS ZIP PATH", zip_path)
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
@@ -41,12 +41,12 @@ class DataProcessor:
                 print("Data loaded successfully:")
                 print(data.head())
                 return data
-        #except zipfile.BadZipFile:
-         #   print("Error: Bad Zip")
-        #except FileNotFoundError:
-         #   print("Error: file not found")
-        #except Exception as e:
-         #   print(f'An error has occured: {e}')
+        except zipfile.BadZipFile:
+            print("Error: Bad Zip")
+        except FileNotFoundError:
+            print("Error: file not found")
+        except Exception as e:
+            print(f'An error has occured: {e}')
     
     def preprocess_terms(self, terms_data):
         raise NotImplementedError("Use subclasses, eg: traits_data .")
@@ -102,7 +102,6 @@ class KOProcessor(DataProcessor):
 class GOProcessor(DataProcessor):
 
     def preprocess_terms(self, terms_data): 
-
         terms_data["value"] = 0
         X_terms = terms_data.pivot_table(index = "key", columns = "GO", values = "value", fill_value=0)
 
@@ -125,7 +124,9 @@ class GOProcessor(DataProcessor):
             'conflict': 'aerobic',  
             'facultative': 'aerobic'  
         })
-        y = traits_data.dropna(subset=['oxygen']).groupby('key').agg({'oxygen': lambda x: x.value_counts().index[0]})
+        y = traits_data.dropna(subset=['oxygen'])
+        y = y.groupby(by = 'key', level = 0)
+        y = y.agg({'oxygen': lambda x: x.value_counts().index[0]})
         return y
 
     def align_data(self, X, y):
@@ -141,13 +142,16 @@ class GOProcessor(DataProcessor):
 
         return X_aligned, Y_aligned
 
-'''class COGsProcessor(DataProcessor):
-    #def preprocess_terms(self, terms_data):
+class COGsProcessor(DataProcessor):
+    def preprocess_terms(self, terms_data):
         return X_filtered_df
+    pass
     
     def preprocess_traits(self, traits_data):
        return y
-    '''
+    pass
+
+    
 
 
 
@@ -159,6 +163,10 @@ class ModelPipeline:
  
     def setup_pipeline(self):
         # Define the pipeline with steps and parameter grid
+        pipeline = Pipeline([
+            ("select_k", SelectKBest(f_classif)),
+            ("estimator", None)
+        ])
         pass
 
     def train_model(self):
