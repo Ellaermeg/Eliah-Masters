@@ -97,6 +97,25 @@ class KOProcessor(DataProcessor):
         assert X_aligned.shape[0] == len(Y_aligned), "X and Y are not aligned"
 
         return X_aligned, Y_aligned
+    
+    def data_checker(self, Y_aligned):
+        # Calculate class distribution and print
+        class_distribution = pd.Series(Y_aligned).value_counts()
+        print("Class distribution in Y_aligned:", class_distribution)
+
+        # Find unique labels and print
+        unique_labels = np.unique(Y_aligned)
+        print(f"Unique labels in Y_aligned: {unique_labels}")
+
+        # Encoding labels
+        label_encoder = LabelEncoder()
+        Y_encoded = label_encoder.fit_transform(Y_aligned)
+
+        # Print encoded labels to check the outcome
+        print("Encoded labels:", Y_encoded)
+
+        # Optionally return processed data, here returning the encoded labels and class distribution
+        return Y_encoded, class_distribution
 
 
 
