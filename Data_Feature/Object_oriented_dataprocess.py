@@ -33,8 +33,8 @@ class DataProcessor:
 
     def load_data_from_zip(self, zip_path, csv_path):
         try:
-            print("THIS IS CSV PATH", csv_path)
-            print("THIS IS ZIP PATH", zip_path)
+            #print("THIS IS CSV PATH", csv_path) #Checking for path
+            #print("THIS IS ZIP PATH", zip_path) #Checking for path
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 with zip_ref.open(csv_path) as file:
                     data = pd.read_csv(file, sep=None) #Skjer noe wack her tror jeg
@@ -140,16 +140,30 @@ class GOProcessor(DataProcessor):
         # Ensures X_aligned and Y_aligned are aligned
         assert X_aligned.shape[0] == len(Y_aligned), "X and Y are not aligned"
 
-        return X_aligned, Y_aligned
+        return X_aligned, Y_aligned 
+    
+    def data_checker(self, Y_aligned):
+        class_distribution = pd.Series(Y_aligned).value_counts()
+        assert "Class distribution in Y_aligned:", class_distribution
 
-class COGsProcessor(DataProcessor):
+        unique_labels = np.unique(Y_aligned)
+        assert "Unique labels in Y_aligned: {unique_labels}"
+
+        label_encoder = LabelEncoder()
+        Y_aligned = label_encoder.fit_transform(Y_aligned)
+        Data_Y_aligned= {np.unique(Y_aligned)}
+
+        return Data_Y_aligned
+
+
+'''class COGsProcessor(DataProcessor):
     def preprocess_terms(self, terms_data):
         return X_filtered_df
     pass
     
     def preprocess_traits(self, traits_data):
        return y
-    pass
+    pass'''
 
     
 
