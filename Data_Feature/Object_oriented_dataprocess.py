@@ -23,6 +23,7 @@ from sklearn.utils import resample
 roc_auc_score, roc_curve, auc
 import joblib
 import logging
+import zipfile
 from bioservices import KEGG
 from K_func import translate_ko_terms
 
