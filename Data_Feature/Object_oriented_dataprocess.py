@@ -37,9 +37,10 @@ class DataProcessor:
             #print("THIS IS ZIP PATH", zip_path) #Checking for path
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 with zip_ref.open(csv_path) as file:
-                    data = pd.read_csv(file, sep=None) #Skjer noe wack her tror jeg
+                    data = pd.read_csv(file, sep=None, engine="python") #Skjer noe wack her tror jeg
                 print("Data loaded successfully:")
                 print(data.head())
+                print(data.columns)
                 return data
         except zipfile.BadZipFile:
             print("Error: Bad Zip")
@@ -102,14 +103,14 @@ class KOProcessor(DataProcessor):
 class GOProcessor(DataProcessor):
 
     def preprocess_terms(self, terms_data): 
-        terms_data["value"] = 0
-        X_terms = terms_data.pivot_table(index = "key", columns = "GO", values = "value", fill_value=0)
+        terms_data["value"] = 1
+        X_terms = terms_data.pivot_table(index ='key', columns ="GO", values = "value", fill_value=0)
 
         # Variance threshold for feature removal
-        selector = VarianceThreshold(threshold=0.01)
-        X_filtered = selector.fit_transform(X_terms)
-        X = pd.DataFrame(X_filtered, index=X_terms.index, columns= X_terms.columns[selector.get_support()])
-        return X
+        selector = VarianceThreshold(threshold=0.01) # gotta check this wierdness
+        X_filtered = selector.fit_transform(X_terms) 
+        X_filtered_df = pd.DataFrame(X_filtered, index=X_terms.index, columns=X_terms.columns[selector.get_support()])
+        return X_filtered_df
     
 
     def preprocess_traits_oxygen(self, traits_data):
@@ -143,17 +144,24 @@ class GOProcessor(DataProcessor):
         return X_aligned, Y_aligned 
     
     def data_checker(self, Y_aligned):
+        # Calculate class distribution and print
         class_distribution = pd.Series(Y_aligned).value_counts()
-        assert "Class distribution in Y_aligned:", class_distribution
+        print("Class distribution in Y_aligned:", class_distribution)
 
+        # Find unique labels and print
         unique_labels = np.unique(Y_aligned)
-        assert "Unique labels in Y_aligned: {unique_labels}"
+        print(f"Unique labels in Y_aligned: {unique_labels}")
 
+        # Encoding labels
         label_encoder = LabelEncoder()
-        Y_aligned = label_encoder.fit_transform(Y_aligned)
-        Data_Y_aligned= {np.unique(Y_aligned)}
+        Y_encoded = label_encoder.fit_transform(Y_aligned)
 
-        return Data_Y_aligned
+        # Print encoded labels to check the outcome
+        print("Encoded labels:", Y_encoded)
+
+        # Optionally return processed data, here returning the encoded labels and class distribution
+        return Y_encoded, class_distribution
+
 
 
 '''class COGsProcessor(DataProcessor):
@@ -192,6 +200,7 @@ class ModelPipeline:
         pass
 
 
+# Below here is something i want to implement later
 '''
 # Assuming X_aligned and Y_aligned are already defined and imported
 def get_feature_importance(model, X, Y):
