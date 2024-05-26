@@ -206,7 +206,7 @@ class ModelPipeline:
         self.best_model = None
         logging.basicConfig(level=logging.INFO)
 
-    def setup_pipeline(self, estimators):
+    def setup_pipeline(self, estimators):  
         self.pipeline = Pipeline(estimators)
         logging.info("Pipeline setup with estimators: {}".format(estimators))
 
@@ -242,34 +242,41 @@ class ModelPipeline:
         plt.show()
 
     def plot_feature_importance(self):
-        if hasattr(self.best_model, 'feature_importances_'):
-            # Extract feature importances from the model
+        # Check if the best model is RandomForest and has 'feature_importances_'
+        if isinstance(self.best_model, RandomForestClassifier) and hasattr(self.best_model, 'feature_importances_'):
             feature_importances = self.best_model.feature_importances_
-            sorted_indices = np.argsort(feature_importances)[::-1]
-
-            # Select the top 10 features
-            top_k_indices = sorted_indices[:10]
-            selected_features = self.X.columns[top_k_indices]
-            sorted_scores = feature_importances[top_k_indices]
-
-            # Translate selected features to their descriptions
-            translated_sorted_features = translate_ko_terms(list(selected_features))
-
-            # Prepare labels and scores for plotting
-            labels = [translated_sorted_features[ko] for ko in selected_features]
-            sorted_labels = [labels[idx] for idx in range(len(labels))]
-
-            # Plotting
-            plt.figure(figsize=(10, 8))
-            plt.bar(range(len(sorted_labels)), sorted_scores)
-            plt.xticks(range(len(sorted_labels)), selected_features, rotation='vertical', fontsize=8)
-            plt.xlabel('Feature Descriptions')
-            plt.ylabel('Importance Scores')
-            plt.title('Top 10 Important Features')
-            plt.tight_layout()
-            plt.show()
+            title = 'Random Forest Feature Importances'
+        # Check if the best model is Logistic Regression
+        elif isinstance(self.best_model, LogisticRegression) and hasattr(self.best_model, 'coef_'):
+            feature_importances = self.best_model.coef_[0]  # Logistic regression coefficients for the features
+            title = 'Logistic Regression Coefficients'
         else:
-            print("The best model does not support feature importance.")
+            print("The best model does not support direct feature importance or coefficient extraction.")
+            return
+
+        # Proceed with extracting top 10 important features
+        sorted_indices = np.argsort(feature_importances)[::-1]
+        top_k_indices = sorted_indices[:10]  # Get indices of top 10 features
+        selected_features = self.X.columns[top_k_indices]
+        sorted_scores = feature_importances[top_k_indices]
+
+        # Translate selected features to their descriptions if function available
+        try:
+            translated_sorted_features = translate_ko_terms(list(selected_features))
+            labels = [translated_sorted_features[ko] for ko in selected_features]
+        except Exception as e:
+            print(f"Could not translate KO terms: {e}")
+            labels = selected_features  # Use original feature names if translation fails
+
+        # Plotting
+        plt.figure(figsize=(10, 8))
+        plt.bar(range(len(labels)), sorted_scores)
+        plt.xticks(range(len(labels)), labels, rotation='vertical', fontsize=8)
+        plt.xlabel('Feature Descriptions')
+        plt.ylabel('Importance Scores')
+        plt.title(title)
+        plt.tight_layout()
+        plt.show()
 
 
     def compare_models(self, k_range=(1, 1000, 20)):
