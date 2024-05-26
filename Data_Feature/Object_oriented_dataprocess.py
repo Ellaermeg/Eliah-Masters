@@ -241,7 +241,7 @@ class ModelPipeline:
         plt.legend(loc="lower right")
         plt.show()
 
-    def plot_feature_importance(self):
+    '''def plot_feature_importance(self):
         # Check if the best model is RandomForest and has 'feature_importances_'
         if isinstance(self.best_model, RandomForestClassifier) and hasattr(self.best_model, 'feature_importances_'):
             feature_importances = self.best_model.feature_importances_
@@ -276,7 +276,7 @@ class ModelPipeline:
         plt.ylabel('Importance Scores')
         plt.title(title)
         plt.tight_layout()
-        plt.show()
+        plt.show()'''
 
 
     def compare_models(self, k_range=(1, 1000, 20)):
