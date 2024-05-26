@@ -14,13 +14,15 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, StratifiedKFold
 from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB # or GaussianNB if your data is normalized and continuous
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, precision_score, recall_score, f1_score, ConfusionMatrixDisplay, make_scorer, matthews_corrcoef
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, precision_score, recall_score, f1_score, ConfusionMatrixDisplay, make_scorer, matthews_corrcoef, roc_auc_score, roc_curve, auc
 from sklearn.feature_selection import VarianceThreshold, SelectKBest, f_classif
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder 
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.utils import resample
-import zipfile 
+roc_auc_score, roc_curve, auc
+import joblib
+import logging
 from bioservices import KEGG
 from K_func import translate_ko_terms
 
@@ -192,8 +194,6 @@ class GOProcessor(DataProcessor):
        return y
     pass'''
 
-    
-
 
 
 # Something like this if i want to make a pipline method
@@ -201,22 +201,144 @@ class ModelPipeline:
     def __init__(self, X, y):
         self.X = X
         self.y = y
- 
-    def setup_pipeline(self):
-        # Define the pipeline with steps and parameter grid
-        pipeline = Pipeline([
-            ("select_k", SelectKBest(f_classif)),
-            ("estimator", None)
-        ])
-        pass
+        self.pipeline = None
+        self.best_model = None
+        logging.basicConfig(level=logging.INFO)
 
-    def train_model(self):
-        # Split data, run GridSearchCV, etc.
-        pass
+    def setup_pipeline(self, estimators):
+        self.pipeline = Pipeline(estimators)
+        logging.info("Pipeline setup with estimators: {}".format(estimators))
 
-    def evaluate_model(self):
-        # Calculate metrics, plot confusion matrix, etc.
-        pass
+    def train_model(self, param_grid, cv=5, n_jobs=-1, verbose=1):
+        X_train, X_test, Y_train, Y_test = train_test_split(self.X, self.y, test_size=0.3, random_state=42)
+        grid_search = GridSearchCV(self.pipeline, param_grid, cv=cv, n_jobs=n_jobs, verbose=verbose)
+        grid_search.fit(X_train, Y_train)
+        self.best_model = grid_search.best_estimator_
+        logging.info("Best parameters: {}".format(grid_search.best_params_))
+
+        Y_pred = self.best_model.predict(X_test)
+        self.evaluate_model(Y_test, Y_pred)
+
+    def evaluate_model(self, Y_test, Y_pred):
+        mcc = matthews_corrcoef(Y_test, Y_pred)
+        roc_score = roc_auc_score(Y_test, Y_pred)
+        logging.info("MCC: {:.3f}, ROC AUC: {:.3f}".format(mcc, roc_score))
+        self.plot_roc(Y_test, Y_pred)
+
+    def plot_roc(self, Y_test, Y_pred):
+        fpr, tpr, thresholds = roc_curve(Y_test, Y_pred)
+        roc_auc = auc(fpr, tpr)
+
+        plt.figure()
+        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % roc_auc)
+        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver operating characteristic')
+        plt.legend(loc="lower right")
+        plt.show()
+
+    def plot_feature_importance(self):
+        if hasattr(self.best_model, 'feature_importances_'):
+            # Extract feature importances from the model
+            feature_importances = self.best_model.feature_importances_
+            sorted_indices = np.argsort(feature_importances)[::-1]
+
+            # Select the top 10 features
+            top_k_indices = sorted_indices[:10]
+            selected_features = self.X.columns[top_k_indices]
+            sorted_scores = feature_importances[top_k_indices]
+
+            # Translate selected features to their descriptions
+            translated_sorted_features = translate_ko_terms(list(selected_features))
+
+            # Prepare labels and scores for plotting
+            labels = [translated_sorted_features[ko] for ko in selected_features]
+            sorted_labels = [labels[idx] for idx in range(len(labels))]
+
+            # Plotting
+            plt.figure(figsize=(10, 8))
+            plt.bar(range(len(sorted_labels)), sorted_scores)
+            plt.xticks(range(len(sorted_labels)), selected_features, rotation='vertical', fontsize=8)
+            plt.xlabel('Feature Descriptions')
+            plt.ylabel('Importance Scores')
+            plt.title('Top 10 Important Features')
+            plt.tight_layout()
+            plt.show()
+        else:
+            print("The best model does not support feature importance.")
+
+
+    def compare_models(self, k_range=(1, 1000, 20)):
+        # Define the range of `k` values to explore
+        k_values = range(*k_range)  # Unpack the range tuple
+
+        # Define estimators to compare
+        estimators = {
+            'RandomForestClassifier': RandomForestClassifier(n_estimators=100, max_depth=10, random_state=42),
+            'SupportVectorMachines': SVC(),
+            'LogisticRegression': LogisticRegression(),
+            'BernoulliNB': BernoulliNB()
+        }
+
+        # Prepare to store results for both F1 and MCC
+        results = {name: {'f1': [], 'mcc': []} for name in estimators}
+
+        # Initialize StratifiedKFold
+        cv = StratifiedKFold(n_splits=5)
+
+        # Loop over each estimator
+        for name, estimator in estimators.items():
+            logging.info(f"Processing estimator: {name}")
+            # Loop over each `k` value
+            for k in k_values:
+                logging.info(f"Testing with k={k}")
+                # Define the pipeline for the current estimator
+                pipeline = Pipeline([
+                    ('select_k', SelectKBest(f_classif, k=k)),
+                    ('estimator', estimator)
+                ])
+                
+                # Perform cross-validation for F1-score
+                f1_scores = cross_val_score(pipeline, self.X, self.y, cv=cv, scoring=make_scorer(f1_score, average='macro'), n_jobs=-1)
+                results[name]['f1'].append(f1_scores.mean())
+                
+                # Perform cross-validation for MCC
+                mcc_scores = cross_val_score(pipeline, self.X, self.y, cv=cv, scoring=make_scorer(matthews_corrcoef), n_jobs=-1)
+                results[name]['mcc'].append(mcc_scores.mean())
+
+        # Optional: Plotting can also be integrated here or can be done outside of this function
+        self.plot_comparison_results(k_values, results)
+
+    def plot_comparison_results(self, k_values, results):
+        fig, ax = plt.subplots(2, 1, figsize=(12, 16))
+        for name, scores in results.items():
+            k_values_list = list(k_values)  # Convert range to list for indexing
+            ax[0].plot(k_values_list, scores['f1'], marker='o', linestyle='-', label=f'{name} F1 Score')
+            ax[1].plot(k_values_list, scores['mcc'], marker='o', linestyle='-', label=f'{name} MCC')
+
+        ax[0].set_title('F1 Score by Number of Selected Features (k) for Different Estimators')
+        ax[0].set_xlabel('Number of Features (k)')
+        ax[0].set_ylabel('F1 Score')
+        ax[1].set_title('MCC by Number of Selected Features (k) for Different Estimators')
+        ax[1].set_xlabel('Number of Features (k)')
+        ax[1].set_ylabel('MCC Score')
+
+        for a in ax:
+            a.legend()
+            a.grid(True)
+        plt.show()
+
+    def save_model(self, path):
+        joblib.dump(self.best_model, path)
+        logging.info("Model saved to {}".format(path))
+
+    def load_model(self, path):
+        self.best_model = joblib.load(path)
+        logging.info("Model loaded from {}".format(path))
+
 
 
 # Below here is something i want to implement later
