@@ -12,6 +12,7 @@ This repository contains the code and analysis for predicting microbial traits f
 - [Results](#results)
 - [Troubleshooting](#troubleshooting)
 - [Future Work](#future-work)
+- [Object-Oriented Data Processing](#object-oriented-data-processing)
 - [References](#references)
 
 ## Introduction
@@ -97,6 +98,31 @@ This section provides solutions to common issues encountered during the analysis
 
 ## Future Work
 Potential future directions for this project include expanding the dataset, exploring additional microbial traits, and refining the machine learning models for better accuracy and interpretability.
+
+## Object-Oriented Data Processing
+
+An object-oriented approach was implemented for processing and managing the data used in this project. The script `Object_oriented_dataprocess.py` provides a modular and scalable framework that enhances the maintainability and flexibility of the code. This approach allows for:
+
+- **Modular Design**: Encapsulation of data processing tasks into classes and methods, making the code more organized and reusable.
+- **Scalability**: Easy integration of additional features and data processing steps without disrupting the existing codebase.
+- **Maintainability**: Simplified debugging and testing due to the clear structure and separation of concerns within the code.
+
+### Key Components
+
+1. **Data Loading and Preprocessing**: 
+   - The script handles the loading of genome annotations and trait data, ensuring that both are properly aligned for subsequent analysis.
+   
+2. **Feature Selection**: 
+   - Integrated feature selection methods such as Variance Thresholding and SelectKBest within the object-oriented framework to streamline the process.
+   
+3. **Model Training and Evaluation**: 
+   - The script includes methods for training and evaluating machine learning models using cross-validation techniques.
+
+4. **Pathway Mapping**: 
+   - An extension that allows for mapping selected features to biological pathways, leveraging the modular structure to add this functionality without affecting other parts of the code.
+
+You can explore the implementation details by accessing the script [here](https://github.com/Ellaermeg/Eliah-Masters/blob/main/Data_Feature/Object_oriented_dataprocess.py).
+
 
 ## References
 1. Merkesvik, J. (2022). *Towards genotype—phenotype association: Leveraging multiple-source microbial data and genome annotations to infer trait attributes for the uncultured microbiome* (Master's thesis). Norwegian University of Science and Technology (NTNU).
