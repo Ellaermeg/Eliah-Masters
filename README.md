@@ -25,9 +25,7 @@ Trait Data: Align microbial trait data with genome annotation features for model
 
 - Machine Learning Models:
 
-Binary Classification: Use various classifiers for each trophic level (e.g., photo, chemo, litho) to predict traits as binary labels (e.g., "yes" or "no").
-Multioutput Classifiers: Implement classifiers that can handle multiple trophic levels simultaneously, reducing the need to process each trait separately.
-Feature Importance: Rank features by their importance using Random Forests and Logistic Regression to identify the most relevant KOs for each trait.
+-----
 
 - Evaluation:
 
@@ -44,7 +42,6 @@ During development, several issues were addressed:
 
 Handling Multilabel Data: Transitioning from binary to multilabel classifiers required adjusting how data was fed into models, ensuring compatibility with scikit-learn's pipeline and evaluation methods.
 
-Warnings Management: Addressed common warnings related to constant features and invalid values during model training by refining data preprocessing steps.
 Optimization: Strived to reduce computational overhead by minimizing redundant operations, particularly in the feature selection and model evaluation processes.
 
 # Key Features
@@ -60,5 +57,7 @@ Enhanced Biological Interpretation: Further analysis of the biological significa
 # References:
 
 Merkesvik, J. (2022). Towards genotype—phenotype association: leveraging multiple-source microbial data and genome annotations to infer trait attributes for the uncultured microbiome. NTNU.
+
 Weimann, A., et al. (2016). From Genomes to Phenotypes: Traitar, the Microbial Trait Analyzer. mSystems.
+
 Davis, J.J., et al. (2020). The PATRIC Bioinformatics Resource Center: expanding data and analysis capabilities. Nucleic Acids Research.
