@@ -1,6 +1,6 @@
 # Predicting Microbial Traits from Genome Annotations
 
-This repository contains the code and analysis for predicting microbial traits from genome annotations, as part of a master's thesis project. The goal of this project is to leverage machine learning techniques to predict the trophic levels and other traits of microorganisms based on their genomic data.
+This repository contains the code and analysis for predicting microbial traits from genome annotations, as part of a master's thesis project. The goal of this project is to leverage machine learning techniques to predict traits/phenotypes of microorganisms based on their genome annotations.
 
 ## Table of Contents
 
@@ -16,15 +16,17 @@ This repository contains the code and analysis for predicting microbial traits f
 
 ## Introduction
 
-Understanding the traits of microorganisms is crucial for various applications in biotechnology, ecology, and medicine. This project aims to predict microbial traits, particularly trophic levels, using genomic data. By applying different machine learning models, we aim to classify these traits and identify the key genomic features that contribute to these classifications.
+Understanding the traits of microorganisms is crucial for various applications in biotechnology, ecology, and medicine. This project aims to predict microbial traits.  The cellular phenotype includes a variety of measurable traits such as but not limited too; cell morphology, gram status, nutrient requirements, oxygen tolerance, byproduct formation, trophy, etc.. By applying different machine learning models, this project aims to create a pipeline for predicting microbial traits from genome annotations and understand which kind of traits can be more reliably predicted and which annotation features are the most relevant.
+
+
 
 ## Data Preparation
 
 ### Genome Annotation Data
-The dataset consists of genome annotations that were processed to extract KEGG Orthology (KO) terms. These KO terms serve as features for the machine learning models.
+The dataset consists of genome annotations. These annotation terms serve as features for the machine learning models.
 
 ### Trait Data
-The traits of interest, particularly trophic levels (e.g., photo, chemo, litho, hetero, organo, auto), were extracted and binarized to serve as target labels for the models.
+The traits of interest, an example being trophic levels (e.g., photo, chemo, litho, hetero, organo, auto), were extracted and binarized to serve as target labels for the models.
 
 ### Data Alignment
 The feature matrix (X) and the target matrix (Y) were aligned based on common indices to ensure that the data used for training and evaluation were consistent.
@@ -47,7 +49,7 @@ X_filtered = selector.fit_transform(X_terms)
 ## Model Training and Evaluation
 
 ### MultiOutput classifiers
-Due to the multilabel nature of the problem (where a microorganism can exhibit multiple traits), MultiOutput Classifiers were used.
+Due to the multilabel nature of the problem (where a microorganism can exhibit multiple traits, without them being mutually exclusive), MultiOutput Classifiers were used.
 
 ### Cross-validation
 Cross-validation was employed to evaluate the performance of different classifiers, including RandomForest, SVC, LogisticRegression, and BernoulliNB, across various feature subsets.
@@ -62,10 +64,10 @@ The performance of the models was assessed using F1 Score and Matthews Correlati
 
 ## Feature Importance and Pathway Mapping
 ### RandomForest and LogisitcRegression
-Feature importance was analyzed using RandomForest and LogisticRegression models. The most important features (KO terms) were identified and mapped to their respective pathways using the KEGG database.
+Feature importance was analyzed using RandomForest and LogisticRegression models. The most important features (annotation terms) were identified and mapped to their respective pathways using different databases (KEGG, COGS, eGGnoGGmapper).
 
 ### Pathway Mapping
-Selected features were mapped to biological pathways, and an interactive network visualization was created to explore the relationships between the KO terms and pathways.
+Selected features were mapped to biological pathways, and an interactive network visualization was created to explore the relationships between the annotation terms and pathways.
 
 ```python
 # KEGG Pathway Mapping
@@ -88,7 +90,7 @@ def map_ko_to_pathways(ko_terms):
 ```
 
 ## Results
-The results section highlights the key findings from the analysis, including the most predictive KO terms for each trophic level and the associated biological pathways.
+The results section highlights the key findings from the analysis, including the most predictive annotation terms for each trophic level and the associated biological pathways (In this example).
 
 ## Troubleshooting
 This section provides solutions to common issues encountered during the analysis, such as handling multioutput classifiers, resolving warnings, and improving model performance.
