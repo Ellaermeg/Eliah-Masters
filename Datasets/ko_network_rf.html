@@ -1,0 +1,364 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1>Interactive Network of KO Terms and Pathways RF</h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1>Interactive Network of KO Terms and Pathways RF</h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 1200px;
+                 height: 800px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "red", "font": {"color": "black"}, "id": "K01599", "label": "hemE, UROD; uroporphyrinogen decarboxylase [EC:4.1.1.37] (K01599)", "shape": "dot", "size": 20, "title": "hemE, UROD; uroporphyrinogen decarboxylase [EC:4.1.1.37] (K01599)"}, {"color": "blue", "font": {"color": "black"}, "id": "Porphyrin metabolism", "label": "Porphyrin metabolism", "shape": "dot", "size": 30, "title": "Porphyrin metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Biosynthesis of secondary metabolites", "label": "Biosynthesis of secondary metabolites", "shape": "dot", "size": 30, "title": "Biosynthesis of secondary metabolites"}, {"color": "blue", "font": {"color": "black"}, "id": "Biosynthesis of cofactors", "label": "Biosynthesis of cofactors", "shape": "dot", "size": 30, "title": "Biosynthesis of cofactors"}, {"color": "red", "font": {"color": "black"}, "id": "K00164", "label": "OGDH, sucA; 2-oxoglutarate dehydrogenase E1 component [EC:1.2.4.2] (K00164)", "shape": "dot", "size": 20, "title": "OGDH, sucA; 2-oxoglutarate dehydrogenase E1 component [EC:1.2.4.2] (K00164)"}, {"color": "blue", "font": {"color": "black"}, "id": "Citrate cycle (TCA cycle)", "label": "Citrate cycle (TCA cycle)", "shape": "dot", "size": 30, "title": "Citrate cycle (TCA cycle)"}, {"color": "blue", "font": {"color": "black"}, "id": "Lipoic acid metabolism", "label": "Lipoic acid metabolism", "shape": "dot", "size": 30, "title": "Lipoic acid metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Microbial metabolism in diverse environments", "label": "Microbial metabolism in diverse environments", "shape": "dot", "size": 30, "title": "Microbial metabolism in diverse environments"}, {"color": "blue", "font": {"color": "black"}, "id": "Carbon metabolism", "label": "Carbon metabolism", "shape": "dot", "size": 30, "title": "Carbon metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "2-Oxocarboxylic acid metabolism", "label": "2-Oxocarboxylic acid metabolism", "shape": "dot", "size": 30, "title": "2-Oxocarboxylic acid metabolism"}, {"color": "red", "font": {"color": "black"}, "id": "K03801", "label": "lipB; lipoyl(octanoyl) transferase [EC:2.3.1.181] (K03801)", "shape": "dot", "size": 20, "title": "lipB; lipoyl(octanoyl) transferase [EC:2.3.1.181] (K03801)"}, {"color": "red", "font": {"color": "black"}, "id": "K02823", "label": "pyrDII; dihydroorotate dehydrogenase electron transfer subunit (K02823)", "shape": "dot", "size": 20, "title": "pyrDII; dihydroorotate dehydrogenase electron transfer subunit (K02823)"}, {"color": "blue", "font": {"color": "black"}, "id": "Pyrimidine metabolism", "label": "Pyrimidine metabolism", "shape": "dot", "size": 30, "title": "Pyrimidine metabolism"}, {"color": "red", "font": {"color": "black"}, "id": "K11358", "label": "yhdR; aspartate aminotransferase [EC:2.6.1.1] (K11358)", "shape": "dot", "size": 20, "title": "yhdR; aspartate aminotransferase [EC:2.6.1.1] (K11358)"}, {"color": "blue", "font": {"color": "black"}, "id": "Arginine biosynthesis", "label": "Arginine biosynthesis", "shape": "dot", "size": 30, "title": "Arginine biosynthesis"}, {"color": "blue", "font": {"color": "black"}, "id": "Alanine, aspartate and glutamate metabolism", "label": "Alanine, aspartate and glutamate metabolism", "shape": "dot", "size": 30, "title": "Alanine, aspartate and glutamate metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Cysteine and methionine metabolism", "label": "Cysteine and methionine metabolism", "shape": "dot", "size": 30, "title": "Cysteine and methionine metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Arginine and proline metabolism", "label": "Arginine and proline metabolism", "shape": "dot", "size": 30, "title": "Arginine and proline metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Tyrosine metabolism", "label": "Tyrosine metabolism", "shape": "dot", "size": 30, "title": "Tyrosine metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Phenylalanine metabolism", "label": "Phenylalanine metabolism", "shape": "dot", "size": 30, "title": "Phenylalanine metabolism"}, {"color": "blue", "font": {"color": "black"}, "id": "Phenylalanine, tyrosine and tryptophan biosynthesis", "label": "Phenylalanine, tyrosine and tryptophan biosynthesis", "shape": "dot", "size": 30, "title": "Phenylalanine, tyrosine and tryptophan biosynthesis"}, {"color": "blue", "font": {"color": "black"}, "id": "Novobiocin biosynthesis", "label": "Novobiocin biosynthesis", "shape": "dot", "size": 30, "title": "Novobiocin biosynthesis"}, {"color": "blue", "font": {"color": "black"}, "id": "Isoquinoline alkaloid biosynthesis", "label": "Isoquinoline alkaloid biosynthesis", "shape": "dot", "size": 30, "title": "Isoquinoline alkaloid biosynthesis"}, {"color": "blue", "font": {"color": "black"}, "id": "Tropane, piperidine and pyridine alkaloid biosynthesis", "label": "Tropane, piperidine and pyridine alkaloid biosynthesis", "shape": "dot", "size": 30, "title": "Tropane, piperidine and pyridine alkaloid biosynthesis"}, {"color": "blue", "font": {"color": "black"}, "id": "Biosynthesis of amino acids", "label": "Biosynthesis of amino acids", "shape": "dot", "size": 30, "title": "Biosynthesis of amino acids"}, {"color": "red", "font": {"color": "black"}, "id": "K02257", "label": "COX10, ctaB, cyoE; heme o synthase [EC:2.5.1.141] (K02257)", "shape": "dot", "size": 20, "title": "COX10, ctaB, cyoE; heme o synthase [EC:2.5.1.141] (K02257)"}, {"color": "blue", "font": {"color": "black"}, "id": "Oxidative phosphorylation", "label": "Oxidative phosphorylation", "shape": "dot", "size": 30, "title": "Oxidative phosphorylation"}, {"color": "blue", "font": {"color": "black"}, "id": "Thermogenesis", "label": "Thermogenesis", "shape": "dot", "size": 30, "title": "Thermogenesis"}, {"color": "red", "font": {"color": "black"}, "id": "K01772", "label": "hemH, FECH; protoporphyrin/coproporphyrin ferrochelatase [EC:4.98.1.1 4.99.1.9] (K01772)", "shape": "dot", "size": 20, "title": "hemH, FECH; protoporphyrin/coproporphyrin ferrochelatase [EC:4.98.1.1 4.99.1.9] (K01772)"}, {"color": "red", "font": {"color": "black"}, "id": "K07146", "label": "K07146; UPF0176 protein (K07146)", "shape": "dot", "size": 20, "title": "K07146; UPF0176 protein (K07146)"}, {"color": "red", "font": {"color": "black"}, "id": "K01163", "label": "K01163; uncharacterized protein (K01163)", "shape": "dot", "size": 20, "title": "K01163; uncharacterized protein (K01163)"}, {"color": "red", "font": {"color": "black"}, "id": "K07138", "label": "K07138; uncharacterized protein (K07138)", "shape": "dot", "size": 20, "title": "K07138; uncharacterized protein (K07138)"}]);
+                  edges = new vis.DataSet([{"from": "K01599", "to": "Porphyrin metabolism", "width": 1}, {"from": "K01599", "to": "Biosynthesis of secondary metabolites", "width": 1}, {"from": "K01599", "to": "Biosynthesis of cofactors", "width": 1}, {"from": "K00164", "to": "Biosynthesis of secondary metabolites", "width": 1}, {"from": "K00164", "to": "Citrate cycle (TCA cycle)", "width": 1}, {"from": "K00164", "to": "Lipoic acid metabolism", "width": 1}, {"from": "K00164", "to": "Microbial metabolism in diverse environments", "width": 1}, {"from": "K00164", "to": "Carbon metabolism", "width": 1}, {"from": "K00164", "to": "2-Oxocarboxylic acid metabolism", "width": 1}, {"from": "K03801", "to": "Biosynthesis of cofactors", "width": 1}, {"from": "K03801", "to": "Lipoic acid metabolism", "width": 1}, {"from": "K02823", "to": "Biosynthesis of cofactors", "width": 1}, {"from": "K02823", "to": "Pyrimidine metabolism", "width": 1}, {"from": "K11358", "to": "Biosynthesis of secondary metabolites", "width": 1}, {"from": "K11358", "to": "2-Oxocarboxylic acid metabolism", "width": 1}, {"from": "K11358", "to": "Arginine biosynthesis", "width": 1}, {"from": "K11358", "to": "Alanine, aspartate and glutamate metabolism", "width": 1}, {"from": "K11358", "to": "Cysteine and methionine metabolism", "width": 1}, {"from": "K11358", "to": "Arginine and proline metabolism", "width": 1}, {"from": "K11358", "to": "Tyrosine metabolism", "width": 1}, {"from": "K11358", "to": "Phenylalanine metabolism", "width": 1}, {"from": "K11358", "to": "Phenylalanine, tyrosine and tryptophan biosynthesis", "width": 1}, {"from": "K11358", "to": "Novobiocin biosynthesis", "width": 1}, {"from": "K11358", "to": "Isoquinoline alkaloid biosynthesis", "width": 1}, {"from": "K11358", "to": "Tropane, piperidine and pyridine alkaloid biosynthesis", "width": 1}, {"from": "K11358", "to": "Biosynthesis of amino acids", "width": 1}, {"from": "K02257", "to": "Porphyrin metabolism", "width": 1}, {"from": "K02257", "to": "Biosynthesis of secondary metabolites", "width": 1}, {"from": "K02257", "to": "Biosynthesis of cofactors", "width": 1}, {"from": "K02257", "to": "Oxidative phosphorylation", "width": 1}, {"from": "K02257", "to": "Thermogenesis", "width": 1}, {"from": "K01772", "to": "Porphyrin metabolism", "width": 1}, {"from": "K01772", "to": "Biosynthesis of secondary metabolites", "width": 1}, {"from": "K01772", "to": "Biosynthesis of cofactors", "width": 1}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": [
+            "physics"
+        ]
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
