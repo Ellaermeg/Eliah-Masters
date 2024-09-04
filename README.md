@@ -17,7 +17,7 @@ This repository contains the code and analysis for predicting microbial traits f
 
 ## Introduction
 
-Understanding the traits of microorganisms is crucial for various applications in biotechnology, ecology, and medicine. This project aims to predict microbial traits.  The cellular phenotype includes a variety of measurable traits such as but not limited too; cell morphology, gram status, nutrient requirements, oxygen tolerance, byproduct formation, trophy, etc.. By applying different machine learning models, this project aims to create a pipeline for predicting microbial traits from genome annotations and understand which kind of traits can be more reliably predicted and which annotation features are the most relevant.
+Understanding the traits of microorganisms is crucial for various applications in biotechnology, ecology, and medicine. This project aims to predict microbial traits from genome annotations.  The cellular phenotype includes a variety of measurable traits such as but not limited too; cell morphology, gram status, nutrient requirements, oxygen tolerance, byproduct formation, trophy, etc.. By applying different machine learning methods, this project aims to create a pipeline for predicting microbial traits from genome annotations and understand which kind of traits can be more reliably predicted and which annotation features are the most relevant.
 
 
 
