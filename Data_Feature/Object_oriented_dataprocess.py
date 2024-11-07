@@ -185,18 +185,6 @@ class GOProcessor(DataProcessor):
         return Y_encoded, class_distribution
 
 
-
-'''class COGsProcessor(DataProcessor):
-    def preprocess_terms(self, terms_data):
-        return X_filtered_df
-    pass
-    
-    def preprocess_traits(self, traits_data):
-       return y
-    pass'''
-
-
-
 # Something like this if i want to make a pipline method
 class ModelPipeline:
     def __init__(self, X, y):
