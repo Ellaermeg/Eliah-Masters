@@ -5,6 +5,7 @@ import os
 import time
 import sys
 import logging
+import shutil
 sys.path.append("../Eliah-Masters")
 from bacdive import BacdiveClient
 from Bio import Entrez
@@ -159,3 +160,17 @@ def download_genomes():
 
         # Update offset for the next batch
         offset += limit
+
+    # After all genomes are downloaded, zip the OUTPUT_DIR
+    zip_output_dir()
+
+def zip_output_dir():
+    zip_file_name = OUTPUT_DIR + '.zip'
+    try:
+        shutil.make_archive(OUTPUT_DIR, 'zip', OUTPUT_DIR)
+        print(f"Successfully zipped the directory to {zip_file_name}")
+    except Exception as e:
+        print(f"Error zipping the directory: {e}")
+
+if __name__ == '__main__':
+    download_genomes()
