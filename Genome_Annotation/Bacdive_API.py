@@ -1,12 +1,11 @@
 # Step 1: Python Script to Download Genomes from BacDive using API and fetch genome sequences from NCBI
 # This script will query BacDive for bacterial strains and use metadata to fetch sequences from NCBI
-
+import sys
+sys.path.append("../Eliah-Masters")
 import os
 import time
-import sys
-import logging
 import shutil
-sys.path.append("../Eliah-Masters")
+import logging
 from bacdive import BacdiveClient
 from Bio import Entrez
 from API_cred import APICredentials
@@ -38,19 +37,28 @@ Entrez.api_key = creds.NCBI_API_KEY  # Use the API key from APICredentials
 
 MAX_GENOMES_TO_DOWNLOAD = 100000  # Set a maximum limit for the total genomes to download (optional)
 CHECKPOINT_FILE = 'checkpoint.txt'
+MAX_RUN_TIME = 36000  # Maximum runtime in seconds 10 hours
 
-def fetch_genome_from_ncbi(accession_number):
+start_time = time.time()
+
+def fetch_genome_from_ncbi(accession_number, retries=3):
     """Fetch genome sequence from NCBI given an accession number."""
-    try:
-        # Fetching the sequence using NCBI Entrez efetch
-        handle = Entrez.efetch(db="nucleotide", id=accession_number, rettype="fasta", retmode="text", api_key=creds.NCBI_API_KEY)
-        sequence_data = handle.read()
-        handle.close()
-        return sequence_data
-    except Exception as e:
-        print(f"Error fetching genome from NCBI for accession number {accession_number}: {e}")
-        logging.error(f"Error fetching genome from NCBI for accession number {accession_number}: {e}")
-        return None
+    for attempt in range(retries):
+        try:
+            # Fetching the sequence using NCBI Entrez efetch
+            handle = Entrez.efetch(db="nucleotide", id=accession_number, rettype="fasta", retmode="text", api_key=creds.NCBI_API_KEY)
+            sequence_data = handle.read()
+            handle.close()
+            return sequence_data
+        except Exception as e:
+            if attempt < retries - 1:
+                print(f"Retrying ({attempt + 1}/{retries}) for accession number {accession_number} due to error: {e}")
+                logging.warning(f"Retrying ({attempt + 1}/{retries}) for accession number {accession_number} due to error: {e}")
+                time.sleep(5)  # Wait a few seconds before retrying
+            else:
+                print(f"Failed to fetch genome after {retries} attempts for accession number {accession_number}: {e}")
+                logging.error(f"Failed to fetch genome after {retries} attempts for accession number {accession_number}: {e}")
+                return None
 
 def get_checkpoint():
     if os.path.exists(CHECKPOINT_FILE):
@@ -66,29 +74,38 @@ def download_genomes():
     # Set a broad taxonomy search term to maximize the number of genomes retrieved
     taxonomy_query = 'Bacteria'  # Replace with a broad term that yields many results
 
-    # Loop through all available strains using pagination
-    offset = 0
+    # Get the last checkpoint to resume from where left off
+    offset = get_checkpoint()
     limit = 50  # Number of strains to retrieve per request
     total_strains = 0
     genomes_downloaded = 0  # Track the number of genomes downloaded
 
-    # Remove the limit of 3 genomes and aim to download as many as possible
-    while True:
+    while genomes_downloaded < MAX_GENOMES_TO_DOWNLOAD:
+        # Check if maximum runtime is reached
+        if time.time() - start_time > MAX_RUN_TIME:
+            print("Maximum runtime reached, stopping download.")
+            logging.info("Maximum runtime reached, stopping download.")
+            break
+
         try:
-            # Search for strains with a specific taxonomy query
+            # Search for strains with pagination parameters and a taxonomy query
             count = client.search(taxonomy=taxonomy_query, offset=offset, limit=limit)
             print(f'Fetching strains {offset} to {offset + limit}...')
+            logging.info(f'Fetching strains {offset} to {offset + limit}...')
         except Exception as e:
             print(f"Error during search: {e}")
-            return
+            logging.error(f"Error during search: {e}")
+            break
 
         # If no more strains are found, break the loop
         if count == 0:
             print("No more strains found.")
+            logging.info("No more strains found.")
             break
 
         total_strains += count
         print(f'{count} strains found in this batch, total strains found so far: {total_strains}')
+        logging.info(f'{count} strains found in this batch, total strains found so far: {total_strains}')
 
         # Iterate over each strain and use accession number to fetch genome data from NCBI
         try:
@@ -115,7 +132,6 @@ def download_genomes():
                 accession_number = None
 
                 # Check multiple potential keys for accession numbers
-                # Attempt to get genome accession number from multiple sources
                 sequence_info = strain.get('Sequence information', {})
                 genome_based_predictions = strain.get('Genome-based predictions', {})
 
@@ -132,6 +148,7 @@ def download_genomes():
                 # If no accession number is found, log the available information for manual inspection
                 if accession_number:
                     print(f"Fetching genome from NCBI for accession number {accession_number}")
+                    logging.info(f"Fetching genome from NCBI for accession number {accession_number}")
                     genome_data = fetch_genome_from_ncbi(accession_number)
 
                     if genome_data:
@@ -139,27 +156,42 @@ def download_genomes():
                             with open(output_path, 'w') as genome_file:
                                 genome_file.write(genome_data)
                                 print(f'Saved genome for BacDive ID {bacdive_id} to {output_path}')
+                                logging.info(f'Saved genome for BacDive ID {bacdive_id} to {output_path}')
                                 genomes_downloaded += 1
+
+                                # Log progress every 1000 genomes
+                                if genomes_downloaded % 1000 == 0:
+                                    logging.info(f"{genomes_downloaded} genomes downloaded so far.")
+
+                                # Zip batch after every 5000 genomes
+                                if genomes_downloaded % 5000 == 0:
+                                    zip_batch(genomes_downloaded // 500)
+
                         except Exception as e:
                             print(f"Error writing genome file for BacDive ID {bacdive_id}: {e}")
+                            logging.error(f"Error writing genome file for BacDive ID {bacdive_id}: {e}")
                     else:
                         print(f"Could not fetch genome for BacDive ID {bacdive_id} (Accession: {accession_number})")
+                        logging.warning(f"Could not fetch genome for BacDive ID {bacdive_id} (Accession: {accession_number})")
                 else:
                     print(f"No accession number found for BacDive ID {bacdive_id}. Checking other keys for accession data.")
+                    logging.info(f"No accession number found for BacDive ID {bacdive_id}.")
 
                     # Additional debugging - print the content of "Sequence information" and "Genome-based predictions"
                     if sequence_info:
-                        print(f"Sequence information available for BacDive ID {bacdive_id}: {sequence_info}")
+                        logging.info(f"Sequence information available for BacDive ID {bacdive_id}: {sequence_info}")
                     if genome_based_predictions:
-                        print(f"Genome-based predictions available for BacDive ID {bacdive_id}: {genome_based_predictions}")
+                        logging.info(f"Genome-based predictions available for BacDive ID {bacdive_id}: {genome_based_predictions}")
 
                 # Add a delay to prevent NCBI rate limiting
                 time.sleep(1)  # Add a 1-second delay between requests
         except KeyError as e:
             print(f"Error retrieving strains: {e}")
+            logging.error(f"Error retrieving strains: {e}")
 
-        # Update offset for the next batch
+        # Update offset for the next batch and save checkpoint
         offset += limit
+        save_checkpoint(offset)
 
     # After all genomes are downloaded, zip the OUTPUT_DIR
     zip_output_dir()
@@ -169,8 +201,20 @@ def zip_output_dir():
     try:
         shutil.make_archive(OUTPUT_DIR, 'zip', OUTPUT_DIR)
         print(f"Successfully zipped the directory to {zip_file_name}")
+        logging.info(f"Successfully zipped the directory to {zip_file_name}")
     except Exception as e:
         print(f"Error zipping the directory: {e}")
+        logging.error(f"Error zipping the directory: {e}")
+
+def zip_batch(batch_number):
+    zip_file_name = f'bacdive_genomes_batch_{batch_number}.zip'
+    try:
+        shutil.make_archive(f'bacdive_genomes_batch_{batch_number}', 'zip', OUTPUT_DIR)
+        print(f"Successfully zipped batch {batch_number} to {zip_file_name}")
+        logging.info(f"Successfully zipped batch {batch_number} to {zip_file_name}")
+    except Exception as e:
+        print(f"Error zipping the batch {batch_number}: {e}")
+        logging.error(f"Error zipping the batch {batch_number}: {e}")
 
 if __name__ == '__main__':
     download_genomes()
