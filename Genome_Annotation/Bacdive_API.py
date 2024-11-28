@@ -3,12 +3,12 @@
 # Requirements: bacdive, os
 
 import os
-from bacdive import BacDiveClient
+from bacdive import BacdiveClient
 import API_login
 
 # Initialize BacDive client
 try:
-    client = BacDiveClient(EMAIL, PASSWORD)
+    client = BacdiveClient(API_login.EMAIL, API_login.PASSWORD)
     print("-- Authentication successful --")
 except Exception as e:
     print(f"Error initializing BacDive client: {e}")
