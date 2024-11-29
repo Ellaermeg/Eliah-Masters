@@ -2,6 +2,9 @@
 # This script will query BacDive for bacterial strains and use metadata to fetch sequences from NCBI
 import sys
 sys.path.append("../Eliah-Masters")
+# Step 1: Python Script to Download Genomes from BacDive using API and fetch genome sequences from NCBI
+# This script will query BacDive for bacterial strains and use metadata to fetch sequences from NCBI
+
 import os
 import time
 import shutil
@@ -106,6 +109,7 @@ def download_genomes():
             try:
                 # Search for strains with pagination parameters and a taxonomy query
                 count = client.search(taxonomy=taxonomy_query, offset=offset, limit=limit)
+                client.setSearchType('exact')  # Setting search type to exact for better matching
                 print(f'Fetching strains {offset} to {offset + limit}...')
                 logging.info(f'Fetching strains {offset} to {offset + limit}...')
             except Exception as e:
