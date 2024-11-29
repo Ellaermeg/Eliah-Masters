@@ -24,14 +24,15 @@ logging.basicConfig(filename='metadata_download_test.log', level=logging.INFO, f
 # CSV file to store metadata
 METADATA_FILE = 'bacdive_metadata_test.csv'
 
-# Initialize CSV file and write headers
-with open(METADATA_FILE, 'w', newline='', encoding='utf8') as csvfile:
-    fieldnames = [
-        'BacDive_ID', 'Genus', 'Species', 'Strain_Designation',
-        'NCBI_Tax_ID', '16S_Accession', 'Genome_Accession'
-    ]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
+# Initialize CSV file and write headers if it doesn't exist yet
+if not os.path.exists(METADATA_FILE):
+    with open(METADATA_FILE, 'w', newline='', encoding='utf8') as csvfile:
+        fieldnames = [
+            'BacDive_ID', 'Genus', 'Species', 'Strain_Designation',
+            'NCBI_Tax_ID', '16S_Accession', 'Genome_Accession'
+        ]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
 
 CHECKPOINT_FILE = 'metadata_checkpoint.txt'
 
@@ -47,15 +48,15 @@ def save_checkpoint(current_id):
 
 # Function to download metadata by iterating through IDs
 def download_metadata_by_id():
-    starting_id = 1  # Start from BacDive ID 1
-    MAX_RECORDS = 97334  # Set a limit for testing purposes
+    starting_id = get_checkpoint()  # Start from the checkpoint if available
+    MAX_RECORDS = 97334
     total_strains = 0
-    max_consecutive_failures = 10000  # Maximum number of consecutive failures before stopping
+    max_consecutive_failures = 500
     consecutive_failures = 0
+    batch_data = []
 
-    while total_strains < MAX_RECORDS and consecutive_failures < max_consecutive_failures:
+    while starting_id <= MAX_RECORDS and consecutive_failures < max_consecutive_failures:
         try:
-            # Attempt to retrieve the strain data using BacDive ID
             print(f'Fetching metadata for BacDive ID {starting_id}...')
             logging.info(f'Fetching metadata for BacDive ID {starting_id}...')
 
@@ -65,7 +66,7 @@ def download_metadata_by_id():
             print(f"Error during search for BacDive ID {starting_id}: {e}")
             logging.error(f"Error during search for BacDive ID {starting_id}: {e}")
             consecutive_failures += 1
-            starting_id += 1  # Move to the next ID
+            starting_id += 1
             continue
 
         if count == 0:
@@ -75,21 +76,18 @@ def download_metadata_by_id():
             starting_id += 1
             continue
 
-        # Write metadata to CSV if data is found
         try:
             strain = next(client.retrieve())
             general_info = strain.get('General', {})
             taxonomy_info = strain.get('Name and taxonomic classification', {})
             sequence_info = strain.get('Sequence information', {})
 
-            # Retrieve metadata fields
             bacdive_id = general_info.get('BacDive-ID', 'Unknown')
             genus = taxonomy_info.get('genus', 'Unknown')
             species = taxonomy_info.get('species', 'Unknown')
             strain_designation = taxonomy_info.get('strain designation', 'Unknown')
             ncbi_tax_id = general_info.get('NCBI tax id', {}).get('NCBI tax id', 'Unknown')
 
-            # Retrieve accession numbers for 16S sequences and genome sequences
             sixteen_s_accession = None
             genome_accession = None
 
@@ -108,23 +106,32 @@ def download_metadata_by_id():
                     elif isinstance(genome_seq_data, dict):
                         genome_accession = genome_seq_data.get('accession')
 
-            # Write the row to CSV
-            with open(METADATA_FILE, 'a', newline='') as csvfile:
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writerow({
-                    'BacDive_ID': bacdive_id,
-                    'Genus': genus,
-                    'Species': species,
-                    'Strain_Designation': strain_designation,
-                    'NCBI_Tax_ID': ncbi_tax_id,
-                    '16S_Accession': sixteen_s_accession,
-                    'Genome_Accession': genome_accession
-                })
+            # Add to batch
+            batch_data.append({
+                'BacDive_ID': bacdive_id,
+                'Genus': genus,
+                'Species': species,
+                'Strain_Designation': strain_designation,
+                'NCBI_Tax_ID': ncbi_tax_id,
+                '16S_Accession': sixteen_s_accession,
+                'Genome_Accession': genome_accession
+            })
 
             total_strains += 1
-            consecutive_failures = 0  # Reset consecutive failures since we successfully retrieved data
+            consecutive_failures = 0
             print(f"Successfully fetched metadata for BacDive ID {bacdive_id}.")
             logging.info(f"Successfully fetched metadata for BacDive ID {bacdive_id}.")
+
+            # Save batch to CSV periodically
+            if len(batch_data) >= 500:
+                with open(METADATA_FILE, 'a', newline='', encoding='utf-8') as csvfile:
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writerows(batch_data)
+                batch_data = []
+
+            # Save the checkpoint after each successful retrieval
+            save_checkpoint(starting_id)
+
         except Exception as e:
             print(f"Error retrieving strain for BacDive ID {starting_id}: {e}")
             logging.error(f"Error retrieving strain for BacDive ID {starting_id}: {e}")
@@ -134,6 +141,12 @@ def download_metadata_by_id():
 
         # Increment ID for the next iteration
         starting_id += 1
+
+    # Write any remaining data in the batch to the CSV
+    if batch_data:
+        with open(METADATA_FILE, 'a', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writerows(batch_data)
 
     print(f"Metadata download complete. Total strains fetched: {total_strains}")
     logging.info(f"Metadata download complete. Total strains fetched: {total_strains}")
