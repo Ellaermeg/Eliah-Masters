@@ -112,7 +112,7 @@ def fetch_metadata(bacdive_id):
 def download_metadata_by_id():
     starting_id = get_checkpoint()  # Start from the checkpoint if available
     MAX_RECORDS = 97334
-    max_workers = 4  # Number of threads to run concurrently
+    max_workers = 8  # Number of threads to run concurrently
 
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_id = {executor.submit(fetch_metadata, bacdive_id): bacdive_id for bacdive_id in range(starting_id, MAX_RECORDS + 1)}
