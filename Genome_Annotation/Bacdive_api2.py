@@ -41,12 +41,14 @@ MAX_RUN_TIME = 36000  # Maximum runtime in seconds (e.g., 10 hours)
 
 start_time = time.time()
 
-# List of possible taxonomy terms for broader search at family level
-TAXONOMY_TERMS = [
-    'Bacillaceae', 'Staphylococcaceae', 'Pseudomonadaceae', 'Enterobacteriaceae', 'Clostridiaceae',
-    'Streptomycetaceae', 'Lactobacillaceae', 'Salmonellaceae', 'Mycobacteriaceae', 'Rhizobiaceae',
-    'Enterococcaceae', 'Neisseriaceae', 'Corynebacteriaceae', 'Actinomycetaceae', 'Vibrionaceae',
-    'Firmicutes', 'Actinobacteria', 'Proteobacteria', 'Bacteroidaceae'
+# List of possible bacterial classes for broader search
+TAXONOMY_CLASSES = [
+    'Actinobacteria', 'Alphaproteobacteria', 'Betaproteobacteria', 'Gammaproteobacteria', 'Deltaproteobacteria',
+    'Epsilonproteobacteria', 'Bacilli', 'Clostridia', 'Bacteroidia', 'Spirochaetia',
+    'Chlamydiia', 'Cyanobacteria', 'Deinococci', 'Thermoleophilia', 'Flavobacteriia',
+    'Negativicutes', 'Sphingobacteriia', 'Planctomycetacia', 'Acidimicrobiia', 'Thermoprotei',
+    'Nitrospira', 'Verrucomicrobiae', 'Aquificae', 'Fibrobacteres', 'Synergistia',
+    'Fusobacteriia', 'Methanobacteria', 'Chlorobia'
 ]
 current_taxonomy_index = 0
 
@@ -89,9 +91,9 @@ def save_checkpoint(offset):
 def download_genomes():
     global current_taxonomy_index
 
-    # Loop through taxonomy terms if needed
-    while current_taxonomy_index < len(TAXONOMY_TERMS):
-        taxonomy_query = TAXONOMY_TERMS[current_taxonomy_index]
+    # Loop through taxonomy classes if needed
+    while current_taxonomy_index < len(TAXONOMY_CLASSES):
+        taxonomy_query = TAXONOMY_CLASSES[current_taxonomy_index]
         print(f"Using taxonomy query: {taxonomy_query}")
         logging.info(f"Using taxonomy query: {taxonomy_query}")
 
@@ -118,10 +120,10 @@ def download_genomes():
                 logging.error(f"Error during search: {e}")
                 break
 
-            # If no more strains are found, switch to the next taxonomy term
+            # If no more strains are found, switch to the next taxonomy class
             if count == 0:
-                print(f"No more strains found for taxonomy: {taxonomy_query}. Switching to next query.")
-                logging.info(f"No more strains found for taxonomy: {taxonomy_query}. Switching to next query.")
+                print(f"No more strains found for taxonomy class: {taxonomy_query}. Switching to next query.")
+                logging.info(f"No more strains found for taxonomy class: {taxonomy_query}. Switching to next query.")
                 current_taxonomy_index += 1
                 break
 
@@ -230,7 +232,7 @@ def download_genomes():
             offset += limit
             save_checkpoint(offset)
 
-        # Update to the next taxonomy term if needed
+        # Update to the next taxonomy class if needed
         current_taxonomy_index += 1
 
     # After all genomes are downloaded, zip the OUTPUT_DIR
