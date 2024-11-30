@@ -162,6 +162,8 @@ class KOProcessor(DataProcessor):
             # Define trophic levels
             trophic_levels = ['photo', 'chemo', 'litho', 'hetero', 'organo', 'auto']
 
+            gram_staining
+
             # Create binary labels for each trophic level
             binary_labels = {}
             for trophy in trophic_levels:
