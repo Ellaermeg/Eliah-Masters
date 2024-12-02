@@ -1,7 +1,7 @@
 import sys
 sys.path.append("../Eliah-Masters")
 import os
-import csv
+import json
 import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -11,6 +11,13 @@ from API_cred import APICredentials
 # Initialize credentials from the class
 creds = APICredentials()
 
+# Set up logging
+logging.basicConfig(filename='metadata_download.log', level=logging.INFO, format='%(asctime)s %(message)s')
+
+# JSON file to store metadata
+METADATA_FILE = 'bacdive_filtered_metadata.json'
+CHECKPOINT_FILE = 'metadata_checkpoint.txt'
+
 # Initialize BacDive client
 try:
     client = BacdiveClient(creds.EMAIL, creds.PASSWORD)
@@ -19,54 +26,131 @@ except Exception as e:
     print(f"Error initializing BacDive client: {e}")
     exit(1)
 
-# Set up logging
-logging.basicConfig(filename='metadata_download_parallel.log', level=logging.INFO, format='%(asctime)s %(message)s')
-
-# CSV file to store metadata
-METADATA_FILE = 'bacdive_metadata_expanded_parallel.csv'
-
-# Initialize CSV file and write headers if it doesn't exist yet
-fieldnames = [
-    'BacDive_ID', 'Genus', 'Species', 'Strain_Designation', 'NCBI_Tax_ID',
-    '16S_Accession', 'Genome_Accession', 'Is_Type_Strain', 'ID_Strains',
-    'Gram_Stain', 'pH', 'Incubation_Period', 'Culture_Medium', 'Temperature',
-    'Produced_Compound', 'Metabolite_Production', 'Production',
-    'Oxygen_Tolerance', 'Nutrition_Type', 'Metabolite_Utilization',
-    'Metabolite_Physiological', 'Assay', 'Enzyme', 'Enzyme_Activity_R',
-    'Sample_Type_Isolated_From', 'Culture_Collection_No'
-]
-
-if not os.path.exists(METADATA_FILE):
-    with open(METADATA_FILE, 'w', newline='', encoding='utf8') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-        writer.writeheader()
-
-CHECKPOINT_FILE = 'metadata_checkpoint.txt'
-
 def get_checkpoint():
+    """Retrieve the last processed BacDive ID from the checkpoint file."""
     try:
         if os.path.exists(CHECKPOINT_FILE):
             with open(CHECKPOINT_FILE, 'r') as f:
                 data = f.read().strip()
-                if data:  # Check if the file is not empty
+                if data:
                     return int(data)
     except ValueError as e:
         print(f"Warning: Invalid checkpoint value encountered: {e}")
         logging.warning(f"Invalid checkpoint value encountered: {e}")
-
     return 1  # Default to ID 1 if no valid checkpoint is found
 
 def save_checkpoint(current_id):
+    """Save the current BacDive ID to the checkpoint file."""
     with open(CHECKPOINT_FILE, 'w') as f:
         f.write(str(current_id))
 
+def filter_metadata(strain):
+    """Filter the metadata to only include the specified fields."""
+    filtered_data = {}
+
+    # Extract "Name and taxonomic classification"
+    classification = strain.get('Name and taxonomic classification', {})
+    if isinstance(classification, dict):
+        filtered_data['Name and taxonomic classification'] = {
+            'Species name': classification.get('species'),
+            'Strain designation': classification.get('strain designation'),
+            'Variant': classification.get('variant'),
+            'Type strain': classification.get('type strain')
+        }
+
+    # Extract "Morphology"
+    morphology = strain.get('Morphology', {})
+    if isinstance(morphology, dict):
+        filtered_data['Morphology'] = {
+            'Colony color': morphology.get('colony color'),
+            'Colony shape': morphology.get('colony shape'),
+            'Cultivation medium used': morphology.get('cultivation medium used'),
+            'Medium Name': morphology.get('medium name'),
+            'Gram stain': morphology.get('Gram stain')  # Added Gram staining information
+        }
+
+    # Extract "Culture and growth conditions"
+    culture_growth = strain.get('Culture and growth conditions', {})
+    if isinstance(culture_growth, dict):
+        filtered_data['Culture and growth conditions'] = {
+            'Culture medium': [medium.get('name') for medium in culture_growth.get('culture medium', [])],
+            'Culture medium composition': [medium.get('composition') for medium in culture_growth.get('culture medium', [])],
+            'Temperature': [temp.get('temperature') for temp in culture_growth.get('culture temp', [])],
+            'pH': culture_growth.get('pH')
+        }
+
+    # Extract "Physiology and metabolism"
+    physiology = strain.get('Physiology and metabolism', {})
+    if isinstance(physiology, dict):
+        filtered_data['Physiology and metabolism'] = {
+            'Ability of spore formation': physiology.get('ability of spore formation'),
+            'Name of produced compound': physiology.get('name of produced compound'),
+            'Halophily / tolerance level': physiology.get('halophily / tolerance level'),
+            'Salt': physiology.get('salt'),
+            'Salt conc.': physiology.get('salt concentration'),
+            'salt concentration unit': physiology.get('salt concentration unit'),
+            'Tested relation': physiology.get('tested relation'),
+            'Testresult (salt)': physiology.get('testresult'),
+            'Murein types': physiology.get('murein types'),
+            'Observation': physiology.get('observation'),
+            'Name of tolerated compound': physiology.get('name of tolerated compound'),
+            'Tolerance percentage': physiology.get('tolerance percentage'),
+            'Tolerated concentration': physiology.get('tolerated concentration'),
+            'Oxygen tolerance': physiology.get('oxygen tolerance'),
+            'Nutrition type': physiology.get('nutrition type'),
+            'Metabolite (utilization)': physiology.get('metabolite utilization'),
+            'Chebi ID': physiology.get('Chebi-ID'),
+            'Utilization activity': physiology.get('utilization activity'),
+            'Kind of utilization tested': physiology.get('kind of utilization tested'),
+            'Metabolite (antibiotic)': physiology.get('metabolite antibiotic'),
+            'Group ID of combined antibiotics': physiology.get('group ID of combined antibiotics'),
+            'has antibiotic function': physiology.get('has antibiotic function'),
+            'Antibiotic sensitivity': physiology.get('antibiotic sensitivity'),
+            'Antibiotic resistance': physiology.get('antibiotic resistance'),
+            'Metabolite (production)': physiology.get('metabolite production'),
+            'Production': physiology.get('production'),
+            'Enzyme': physiology.get('enzymes', {}).get('value'),
+            'Enzyme activity': physiology.get('enzymes', {}).get('activity'),
+            'EC number': physiology.get('enzymes', {}).get('ec')
+        }
+
+    # Extract "Isolation, sampling and environmental information"
+    isolation = strain.get('Isolation, sampling and environmental information', {})
+    if isinstance(isolation, dict):
+        filtered_data['Isolation, sampling and environmental information'] = {
+            '16S_seq_accession': isolation.get('16S_seq_accession'),
+            'SeqIdentity': isolation.get('SeqIdentity'),
+            'Host species': isolation.get('host species'),
+            'Country': isolation.get('country')
+        }
+
+    # Extract "Sequence information"
+    sequence_info = strain.get('Sequence information', {})
+    if isinstance(sequence_info, dict):
+        filtered_data['Sequence information'] = {
+            '16S seq. accession number': [seq.get('accession') for seq in sequence_info.get('16S sequences', [])],
+            'Genome seq. accession number': [genome.get('accession') for genome in sequence_info.get('Genome sequences', [])]
+        }
+
+    # Extract "Antibiotic susceptibility testing"
+    antibiotic_testing = strain.get('Antibiotic susceptibility testing', {})
+    if isinstance(antibiotic_testing, dict):
+        filtered_data['Antibiotic susceptibility testing'] = antibiotic_testing
+
+    # Extract "fatty acid profile"
+    fatty_acid_profile = strain.get('fatty acid profile', {})
+    if isinstance(fatty_acid_profile, dict):
+        filtered_data['fatty acid profile'] = fatty_acid_profile
+
+    return filtered_data
+
 def fetch_metadata(bacdive_id):
-    """Fetch metadata for a given BacDive ID."""
+    """Fetch metadata for a given BacDive ID using the initialized BacDive client."""
     try:
         print(f'Fetching metadata for BacDive ID {bacdive_id}...')
         logging.info(f'Fetching metadata for BacDive ID {bacdive_id}...')
 
-        # Fetch metadata for the given ID
+        # Use BacDiveClient to fetch metadata
         count = client.search(id=bacdive_id)
         if count == 0:
             print(f"No record found for BacDive ID {bacdive_id}.")
@@ -74,108 +158,33 @@ def fetch_metadata(bacdive_id):
             return None
 
         strain = next(client.retrieve())
-        general_info = strain.get('General', {})
-        taxonomy_info = strain.get('Name and taxonomic classification', {})
-        culture_growth = strain.get('Culture and growth conditions', {})
-        physiology = strain.get('Physiology and metabolism', {})
-        isolation_info = strain.get('Isolation, sampling and environmental information', {})
-        sequence_info = strain.get('Sequence information', {})
-        external_links = strain.get('External links', {})
 
-        # Retrieve metadata fields
-        bacdive_id = general_info.get('BacDive-ID', 'Unknown')
-        genus = taxonomy_info.get('genus', 'Unknown')
-        species = taxonomy_info.get('species', 'Unknown')
-        strain_designation = taxonomy_info.get('strain designation', 'Unknown')
-        ncbi_tax_id = general_info.get('NCBI tax id', 'Unknown')
-        is_type_strain = taxonomy_info.get('is type strain', 'Unknown')
+        # Filter out unwanted sections and keys
+        filtered_strain = filter_metadata(strain)
 
-        # Retrieve accession numbers
-        sixteen_s_accession = None
-        genome_accession = None
+        # Add BacDive_ID field separately for easy identification
+        filtered_strain['BacDive_ID'] = bacdive_id
 
-        if isinstance(sequence_info, dict):
-            if '16S sequences' in sequence_info:
-                sixteen_s_data = sequence_info['16S sequences']
-                if isinstance(sixteen_s_data, list) and len(sixteen_s_data) > 0:
-                    sixteen_s_accession = sixteen_s_data[0].get('accession')
-                elif isinstance(sixteen_s_data, dict):
-                    sixteen_s_accession = sixteen_s_data.get('accession')
-
-            if 'genome sequence' in sequence_info:
-                genome_seq_data = sequence_info['genome sequence']
-                if isinstance(genome_seq_data, list) and len(genome_seq_data) > 0:
-                    genome_accession = genome_seq_data[0].get('accession')
-                elif isinstance(genome_seq_data, dict):
-                    genome_accession = genome_seq_data.get('accession')
-
-        # Extract other requested metadata fields
-        id_strains = general_info.get('id strains', 'Unknown')
-        gram_stain = physiology.get('Gram stain', 'Unknown')
-        pH = culture_growth.get('pH', 'Unknown')
-        incubation_period = culture_growth.get('incubation period', 'Unknown')
-        culture_medium = culture_growth.get('culture medium', {}).get('name', 'Unknown') if isinstance(culture_growth.get('culture medium', {}), dict) else 'Unknown'
-        temperature = culture_growth.get('temperature', 'Unknown')
-        produced_compound = physiology.get('name of produced compound', 'Unknown')
-        metabolite_production = physiology.get('Metabolite (production)', 'Unknown')
-        production = physiology.get('Production', 'Unknown')
-        oxygen_tolerance = physiology.get('oxygen tolerance', 'Unknown')
-        nutrition_type = physiology.get('nutrition type', 'Unknown')
-        metabolite_utilization = physiology.get('Metabolite (utilization)', 'Unknown')
-        metabolite_physiological = physiology.get('Metabolite (physiological)', 'Unknown')
-        assay = physiology.get('assay', 'Unknown')
-        enzyme = physiology.get('Enzyme', 'Unknown')
-        enzyme_activity_r = physiology.get('Enzyme activity R', 'Unknown')
-        sample_type_isolated_from = isolation_info.get('sample type/isolated from', 'Unknown')
-        culture_collection_no = external_links.get('culture collection no.', 'Unknown')
-
-        return {
-            'BacDive_ID': bacdive_id,
-            'Genus': genus,
-            'Species': species,
-            'Strain_Designation': strain_designation,
-            'NCBI_Tax_ID': ncbi_tax_id,
-            '16S_Accession': sixteen_s_accession,
-            'Genome_Accession': genome_accession,
-            'Is_Type_Strain': is_type_strain,
-            'ID_Strains': id_strains,
-            'Gram_Stain': gram_stain,
-            'pH': pH,
-            'Incubation_Period': incubation_period,
-            'Culture_Medium': culture_medium,
-            'Temperature': temperature,
-            'Produced_Compound': produced_compound,
-            'Metabolite_Production': metabolite_production,
-            'Production': production,
-            'Oxygen_Tolerance': oxygen_tolerance,
-            'Nutrition_Type': nutrition_type,
-            'Metabolite_Utilization': metabolite_utilization,
-            'Metabolite_Physiological': metabolite_physiological,
-            'Assay': assay,
-            'Enzyme': enzyme,
-            'Enzyme_Activity_R': enzyme_activity_r,
-            'Sample_Type_Isolated_From': sample_type_isolated_from,
-            'Culture_Collection_No': culture_collection_no
-        }
+        return filtered_strain
 
     except Exception as e:
         print(f"Error retrieving strain for BacDive ID {bacdive_id}: {e}")
         logging.error(f"Error retrieving strain for BacDive ID {bacdive_id}: {e}")
         return None
 
-# Function to download metadata in parallel
 def download_metadata_by_id_parallel():
+    """Download metadata in parallel using multiple threads."""
     starting_id = get_checkpoint()
-    MAX_RECORDS = 174334  # The highest known BacDive ID
+    MAX_RECORDS = 100  # Limiting to 100 IDs for a quick test
     batch_data = []
 
-    with ThreadPoolExecutor(max_workers=10) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:  # Using 5 threads for testing
         while starting_id <= MAX_RECORDS:
             # Jump to 100000 if we reach 24873
             if 24873 <= starting_id < 100000:
                 starting_id = 100000
 
-            future_to_id = {executor.submit(fetch_metadata, bacdive_id): bacdive_id for bacdive_id in range(starting_id, min(starting_id + 500, MAX_RECORDS + 1))}
+            future_to_id = {executor.submit(fetch_metadata, bacdive_id): bacdive_id for bacdive_id in range(starting_id, min(starting_id + 10, MAX_RECORDS + 1))}
             for future in as_completed(future_to_id):
                 bacdive_id = future_to_id[future]
                 try:
@@ -185,23 +194,27 @@ def download_metadata_by_id_parallel():
                 except Exception as e:
                     print(f"Error processing BacDive ID {bacdive_id}: {e}")
 
-                # Save batch to CSV periodically
-                if len(batch_data) >= 500:
-                    with open(METADATA_FILE, 'a', newline='', encoding='utf-8') as csvfile:
-                        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                        writer.writerows(batch_data)
-                    batch_data = []
-
                 # Save the checkpoint
                 save_checkpoint(bacdive_id)
 
-            starting_id += 500
+            starting_id += 10
 
-    # Write any remaining data in the batch to the CSV
+    # Write the batch data to JSON file
     if batch_data:
-        with open(METADATA_FILE, 'a', newline='', encoding='utf-8') as csvfile:
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writerows(batch_data)
+        if os.path.exists(METADATA_FILE):
+            # If the file exists, load existing data and append the new batch
+            with open(METADATA_FILE, 'r', encoding='utf-8') as jsonfile:
+                try:
+                    existing_data = json.load(jsonfile)
+                except json.JSONDecodeError:
+                    existing_data = []
+        else:
+            existing_data = []
+
+        existing_data.extend(batch_data)
+
+        with open(METADATA_FILE, 'w', encoding='utf-8') as jsonfile:
+            json.dump(existing_data, jsonfile, indent=4)
 
     print("Metadata download complete.")
     logging.info("Metadata download complete.")

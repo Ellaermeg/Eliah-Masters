@@ -27,20 +27,71 @@ class TraitManager:
             }
         }
 
-    def preprocess_trait(self, traits_data, trait_column):
-        if trait_column in self.trait_mappings:
-            if 'mapping' in self.trait_mappings[trait_column]:
-                mapping = self.trait_mappings[trait_column]['mapping']
-                traits_data[trait_column] = traits_data[trait_column].map(mapping).fillna(self.trait_mappings[trait_column]['default_value'])
-            elif 'levels' in self.trait_mappings[trait_column]:
-                trophic_levels = self.trait_mappings[trait_column]['levels']
-                binary_labels = {}
-                for level in trophic_levels:
-                    binary_labels[level] = traits_data[trait_column].apply(lambda x: 1 if level in x.lower() else 0)
-                return pd.DataFrame(binary_labels, index=traits_data['key'])
+    def preprocess_traits(self, reduced_traits_data, trait_column, use_assembled_if_missing=False):
+        """
+        Processes traits data from the reduced dataset, optionally integrating the assembled dataset if the trait is missing.
+
+        Parameters:
+        - reduced_traits_data: DataFrame containing traits from the reduced dataset.
+        - trait_column: The column of the trait that we want to process.
+        - use_assembled_if_missing: Boolean to decide whether to use the assembled dataset if the trait column is missing.
+        """
+        if reduced_traits_data is None:
+            print("Error: Reduced traits data is not available.")
+            return None
+
+        required_columns = ['key', 'speciesstrain', 'speciesstraincomp']
+        missing_columns = [col for col in required_columns if col not in reduced_traits_data.columns]
+
+        if missing_columns:
+            print(f"Error: Missing columns {missing_columns} in the reduced traits data.")
+            return None
+
+        # If the trait column does not exist in the reduced dataset, optionally use the assembled dataset
+        if trait_column not in reduced_traits_data.columns:
+            print(f"Trait column '{trait_column}' not found in reduced traits data.")
+            if use_assembled_if_missing:
+                traits_assembled = self.load_assembled_traits_data()
+                if traits_assembled is not None:
+                    required_assembled_columns = [trait_column, 'speciesstraincomp', 'database']
+                    missing_assembled_columns = [col for col in required_assembled_columns if col not in traits_assembled.columns]
+
+                    if missing_assembled_columns:
+                        print(f"Error: Missing columns {missing_assembled_columns} in the assembled traits data.")
+                        return None
+
+                    traits_assembled = traits_assembled.dropna(subset=[trait_column]).query("database == 'bacdive'")
+                    reduced_traits_data = pd.merge(
+                        reduced_traits_data[['key', 'speciesstrain', 'speciesstraincomp']],
+                        traits_assembled[[trait_column, 'speciesstraincomp', 'database']],
+                        on='speciesstraincomp',
+                        how='inner'
+                    )
+                    print("Merged traits assembled data with reduced data.")
+                else:
+                    print("Assembled traits data is not available.")
+                    return None
+            else:
+                print(f"Trait column '{trait_column}' not found, and use_assembled_if_missing is set to False.")
+                return None
+
+        # If the trait column now exists, process it
+        if trait_column in reduced_traits_data.columns:
+            reduced_traits_data = reduced_traits_data.dropna(subset=[trait_column])
+            if reduced_traits_data.empty:
+                print(f"Warning: No data available after dropping NA for trait column '{trait_column}'.")
+                return None
+
+            processed_data = self.trait_manager.preprocess_trait(reduced_traits_data, trait_column)
+            if processed_data is not None and not processed_data.empty:
+                print(f"Processed traits for column '{trait_column}' successfully.")
+                return processed_data
+            else:
+                print(f"Error processing traits for column '{trait_column}'. Processed data is empty or None.")
+                return None
         else:
-            print(f"Warning: Trait '{trait_column}' is not defined in trait mappings.")
-        return traits_data
+            print(f"Error: Trait column '{trait_column}' not found in the reduced traits data after merging.")
+            return None
 
 class DataProcessor:
     def __init__(self, terms_zip_path=None, terms_csv_path=None, traits_reduced_zip_path=None, traits_reduced_csv_path=None, traits_assembled_zip_path=None, traits_assembled_csv_path=None):
