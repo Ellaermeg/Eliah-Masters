@@ -1,0 +1,361 @@
+[
+    {
+        "Name and taxonomic classification": {
+            "Species name": "Acetobacter aceti",
+            "Strain designation": "L 40",
+            "Variant": null,
+            "Type strain": "yes"
+        },
+        "Morphology": {
+            "Colony color": null,
+            "Colony shape": null,
+            "Cultivation medium used": null,
+            "Medium Name": null,
+            "Gram stain": null
+        },
+        "Culture and growth conditions": {
+            "Culture medium": [
+                "MEDIUM 1 - for Acetobacter, Azotobacter, Gluconobacter, Gluconacetobacter, Mesorhizodium ciceri and Pseudomonas doudoroffii",
+                "YPM MEDIUM (DSMZ Medium 360)",
+                "CIP Medium 1"
+            ],
+            "Culture medium composition": [
+                "Distilled water make up to (1000.000 ml);Agar (15.000 g);Yeast extract (5.000 g);Peptone (3.000 g);Mannitol (25.000 g)",
+                "Name: YPM MEDIUM (DSMZ Medium 360)\nComposition:\nMannitol 25.0 g/l\nAgar 12.0 g/l\nYeast extract 5.0 g/l\nPeptone 3.0 g/l\nDistilled water",
+                null
+            ],
+            "Temperature": [
+                "30",
+                "25",
+                "30",
+                "30",
+                "22-30",
+                "10",
+                "37",
+                "41",
+                "45"
+            ],
+            "pH": null
+        },
+        "Physiology and metabolism": {
+            "Ability of spore formation": null,
+            "Name of produced compound": null,
+            "Halophily / tolerance level": null,
+            "Salt": null,
+            "Salt conc.": null,
+            "salt concentration unit": null,
+            "Tested relation": null,
+            "Testresult (salt)": null,
+            "Murein types": null,
+            "Observation": {
+                "@ref": 67770,
+                "observation": "quinones: Q-9"
+            },
+            "Name of tolerated compound": null,
+            "Tolerance percentage": null,
+            "Tolerated concentration": null,
+            "Oxygen tolerance": [
+                {
+                    "@ref": 46757,
+                    "oxygen tolerance": "aerobe"
+                },
+                {
+                    "@ref": 115989,
+                    "oxygen tolerance": "obligate aerobe"
+                }
+            ],
+            "Nutrition type": null,
+            "Metabolite (utilization)": [
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 17632,
+                    "metabolite": "nitrate",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "reduction"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 28053,
+                    "metabolite": "melibiose",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 17992,
+                    "metabolite": "sucrose",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 62345,
+                    "metabolite": "L-rhamnose",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 30911,
+                    "metabolite": "sorbitol",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 17268,
+                    "metabolite": "myo-inositol",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 17634,
+                    "metabolite": "D-glucose",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "fermentation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 5291,
+                    "metabolite": "gelatin",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "hydrolysis"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 27897,
+                    "metabolite": "tryptophan",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "energy source"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 16199,
+                    "metabolite": "urea",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "hydrolysis"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 16947,
+                    "metabolite": "citrate",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "assimilation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 18257,
+                    "metabolite": "ornithine",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "degradation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 25094,
+                    "metabolite": "lysine",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "degradation"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 29016,
+                    "metabolite": "arginine",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "hydrolysis"
+                },
+                {
+                    "@ref": 115989,
+                    "Chebi-ID": 606565,
+                    "metabolite": "hippurate",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "hydrolysis"
+                },
+                {
+                    "@ref": 115989,
+                    "Chebi-ID": 17632,
+                    "metabolite": "nitrate",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "reduction"
+                },
+                {
+                    "@ref": 115989,
+                    "Chebi-ID": 16301,
+                    "metabolite": "nitrite",
+                    "utilization activity": "-",
+                    "kind of utilization tested": "reduction"
+                }
+            ],
+            "Chebi ID": null,
+            "Utilization activity": null,
+            "Kind of utilization tested": null,
+            "Metabolite (antibiotic)": null,
+            "Group ID of combined antibiotics": null,
+            "has antibiotic function": null,
+            "Antibiotic sensitivity": null,
+            "Antibiotic resistance": {
+                "@ref": 115989,
+                "metabolite": "0129 (2,4-Diamino-6,7-di-iso-propylpteridine phosphate)",
+                "is antibiotic": "yes",
+                "is sensitive": "no",
+                "is resistant": "yes"
+            },
+            "Metabolite (production)": [
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 17997,
+                    "metabolite": "dinitrogen",
+                    "production": "no"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 16301,
+                    "metabolite": "nitrite",
+                    "production": "no"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 15688,
+                    "metabolite": "acetoin",
+                    "production": "no"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 35581,
+                    "metabolite": "indole",
+                    "production": "no"
+                },
+                {
+                    "@ref": 68368,
+                    "Chebi-ID": 16136,
+                    "metabolite": "hydrogen sulfide",
+                    "production": "no"
+                },
+                {
+                    "@ref": 115989,
+                    "Chebi-ID": 35581,
+                    "metabolite": "indole",
+                    "production": "no"
+                }
+            ],
+            "Production": null,
+            "Enzyme": null,
+            "Enzyme activity": null,
+            "EC number": null
+        },
+        "Isolation, sampling and environmental information": {
+            "16S_seq_accession": null,
+            "SeqIdentity": null,
+            "Host species": null,
+            "Country": null
+        },
+        "Sequence information": {
+            "16S seq. accession number": [
+                "AJ621845",
+                "AB665077",
+                "D30768",
+                "JF793947",
+                "JF793949",
+                "AB111902",
+                "AB680674",
+                "AB003967",
+                "X74066"
+            ],
+            "Genome seq. accession number": [
+                "887700.7",
+                "887700.6",
+                "887700.10",
+                "2547132264",
+                "2784746776",
+                "GCA_000193495",
+                "GCA_000963905",
+                "GCA_004341595"
+            ]
+        },
+        "Antibiotic susceptibility testing": {},
+        "fatty acid profile": {},
+        "BacDive_ID": 2
+    },
+    {
+        "Name and taxonomic classification": {
+            "Species name": "Acetobacter aceti",
+            "Strain designation": "B 4114",
+            "Variant": null,
+            "Type strain": "no"
+        },
+        "Morphology": {
+            "Colony color": null,
+            "Colony shape": null,
+            "Cultivation medium used": null,
+            "Medium Name": null,
+            "Gram stain": null
+        },
+        "Culture and growth conditions": {
+            "Culture medium": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "Culture medium composition": [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            "Temperature": [
+                null,
+                null,
+                null,
+                null
+            ],
+            "pH": null
+        },
+        "Physiology and metabolism": {
+            "Ability of spore formation": null,
+            "Name of produced compound": null,
+            "Halophily / tolerance level": null,
+            "Salt": null,
+            "Salt conc.": null,
+            "salt concentration unit": null,
+            "Tested relation": null,
+            "Testresult (salt)": null,
+            "Murein types": null,
+            "Observation": null,
+            "Name of tolerated compound": null,
+            "Tolerance percentage": null,
+            "Tolerated concentration": null,
+            "Oxygen tolerance": null,
+            "Nutrition type": null,
+            "Metabolite (utilization)": null,
+            "Chebi ID": null,
+            "Utilization activity": null,
+            "Kind of utilization tested": null,
+            "Metabolite (antibiotic)": null,
+            "Group ID of combined antibiotics": null,
+            "has antibiotic function": null,
+            "Antibiotic sensitivity": null,
+            "Antibiotic resistance": null,
+            "Metabolite (production)": null,
+            "Production": null,
+            "Enzyme": null,
+            "Enzyme activity": null,
+            "EC number": null
+        },
+        "Isolation, sampling and environmental information": {
+            "16S_seq_accession": null,
+            "SeqIdentity": null,
+            "Host species": null,
+            "Country": null
+        },
+        "Sequence information": {
+            "16S seq. accession number": [],
+            "Genome seq. accession number": []
+        },
+        "Antibiotic susceptibility testing": {},
+        "fatty acid profile": {},
+        "BacDive_ID": 1
+    }
+]

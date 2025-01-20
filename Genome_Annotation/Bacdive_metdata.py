@@ -44,105 +44,108 @@ def save_checkpoint(current_id):
     with open(CHECKPOINT_FILE, 'w') as f:
         f.write(str(current_id))
 
+def safe_get(data, keys, default=None):
+    """Safely retrieve nested values from a dictionary."""
+    for key in keys:
+        if isinstance(data, dict) and key in data:
+            data = data[key]
+        else:
+            return default
+    return data
+
+
 def filter_metadata(strain):
     """Filter the metadata to only include the specified fields."""
     filtered_data = {}
 
     # Extract "Name and taxonomic classification"
-    classification = strain.get('Name and taxonomic classification', {})
-    if isinstance(classification, dict):
-        filtered_data['Name and taxonomic classification'] = {
-            'Species name': classification.get('species'),
-            'Strain designation': classification.get('strain designation'),
-            'Variant': classification.get('variant'),
-            'Type strain': classification.get('type strain')
-        }
+    classification = safe_get(strain, ['Name and taxonomic classification'], {})
+    filtered_data['Name and taxonomic classification'] = {
+        'Species name': safe_get(classification, ['species']),
+        'Strain designation': safe_get(classification, ['strain designation']),
+        'Variant': safe_get(classification, ['variant']),
+        'Type strain': safe_get(classification, ['type strain'])
+    }
 
     # Extract "Morphology"
-    morphology = strain.get('Morphology', {})
-    if isinstance(morphology, dict):
-        filtered_data['Morphology'] = {
-            'Colony color': morphology.get('colony color'),
-            'Colony shape': morphology.get('colony shape'),
-            'Cultivation medium used': morphology.get('cultivation medium used'),
-            'Medium Name': morphology.get('medium name'),
-            'Gram stain': morphology.get('Gram stain')  # Added Gram staining information
-        }
+    morphology = safe_get(strain, ['Morphology'], {})
+    filtered_data['Morphology'] = {
+        'Colony color': safe_get(morphology, ['colony color']),
+        'Colony shape': safe_get(morphology, ['colony shape']),
+        'Cultivation medium used': safe_get(morphology, ['cultivation medium used']),
+        'Medium Name': safe_get(morphology, ['medium name']),
+        'Gram stain': safe_get(morphology, ['Gram stain'])  # Added Gram staining information
+    }
 
     # Extract "Culture and growth conditions"
-    culture_growth = strain.get('Culture and growth conditions', {})
-    if isinstance(culture_growth, dict):
-        filtered_data['Culture and growth conditions'] = {
-            'Culture medium': [medium.get('name') for medium in culture_growth.get('culture medium', [])],
-            'Culture medium composition': [medium.get('composition') for medium in culture_growth.get('culture medium', [])],
-            'Temperature': [temp.get('temperature') for temp in culture_growth.get('culture temp', [])],
-            'pH': culture_growth.get('pH')
-        }
+    culture_growth = safe_get(strain, ['Culture and growth conditions'], {})
+    filtered_data['Culture and growth conditions'] = {
+        'Culture medium': [safe_get(medium, ['name']) for medium in safe_get(culture_growth, ['culture medium'], [])],
+        'Culture medium composition': [safe_get(medium, ['composition']) for medium in safe_get(culture_growth, ['culture medium'], [])],
+        'Temperature': [safe_get(temp, ['temperature']) for temp in safe_get(culture_growth, ['culture temp'], [])],
+        'pH': safe_get(culture_growth, ['pH'])
+    }
 
     # Extract "Physiology and metabolism"
-    physiology = strain.get('Physiology and metabolism', {})
-    if isinstance(physiology, dict):
-        filtered_data['Physiology and metabolism'] = {
-            'Ability of spore formation': physiology.get('ability of spore formation'),
-            'Name of produced compound': physiology.get('name of produced compound'),
-            'Halophily / tolerance level': physiology.get('halophily / tolerance level'),
-            'Salt': physiology.get('salt'),
-            'Salt conc.': physiology.get('salt concentration'),
-            'salt concentration unit': physiology.get('salt concentration unit'),
-            'Tested relation': physiology.get('tested relation'),
-            'Testresult (salt)': physiology.get('testresult'),
-            'Murein types': physiology.get('murein types'),
-            'Observation': physiology.get('observation'),
-            'Name of tolerated compound': physiology.get('name of tolerated compound'),
-            'Tolerance percentage': physiology.get('tolerance percentage'),
-            'Tolerated concentration': physiology.get('tolerated concentration'),
-            'Oxygen tolerance': physiology.get('oxygen tolerance'),
-            'Nutrition type': physiology.get('nutrition type'),
-            'Metabolite (utilization)': physiology.get('metabolite utilization'),
-            'Chebi ID': physiology.get('Chebi-ID'),
-            'Utilization activity': physiology.get('utilization activity'),
-            'Kind of utilization tested': physiology.get('kind of utilization tested'),
-            'Metabolite (antibiotic)': physiology.get('metabolite antibiotic'),
-            'Group ID of combined antibiotics': physiology.get('group ID of combined antibiotics'),
-            'has antibiotic function': physiology.get('has antibiotic function'),
-            'Antibiotic sensitivity': physiology.get('antibiotic sensitivity'),
-            'Antibiotic resistance': physiology.get('antibiotic resistance'),
-            'Metabolite (production)': physiology.get('metabolite production'),
-            'Production': physiology.get('production'),
-            'Enzyme': physiology.get('enzymes', {}).get('value'),
-            'Enzyme activity': physiology.get('enzymes', {}).get('activity'),
-            'EC number': physiology.get('enzymes', {}).get('ec')
-        }
+    physiology = safe_get(strain, ['Physiology and metabolism'], {})
+    filtered_data['Physiology and metabolism'] = {
+        'Ability of spore formation': safe_get(physiology, ['ability of spore formation']),
+        'Name of produced compound': safe_get(physiology, ['name of produced compound']),
+        'Halophily / tolerance level': safe_get(physiology, ['halophily / tolerance level']),
+        'Salt': safe_get(physiology, ['salt']),
+        'Salt conc.': safe_get(physiology, ['salt concentration']),
+        'salt concentration unit': safe_get(physiology, ['salt concentration unit']),
+        'Tested relation': safe_get(physiology, ['tested relation']),
+        'Testresult (salt)': safe_get(physiology, ['testresult']),
+        'Murein types': safe_get(physiology, ['murein types']),
+        'Observation': safe_get(physiology, ['observation']),
+        'Name of tolerated compound': safe_get(physiology, ['name of tolerated compound']),
+        'Tolerance percentage': safe_get(physiology, ['tolerance percentage']),
+        'Tolerated concentration': safe_get(physiology, ['tolerated concentration']),
+        'Oxygen tolerance': safe_get(physiology, ['oxygen tolerance']),
+        'Nutrition type': safe_get(physiology, ['nutrition type']),
+        'Metabolite (utilization)': safe_get(physiology, ['metabolite utilization']),
+        'Chebi ID': safe_get(physiology, ['Chebi-ID']),
+        'Utilization activity': safe_get(physiology, ['utilization activity']),
+        'Kind of utilization tested': safe_get(physiology, ['kind of utilization tested']),
+        'Metabolite (antibiotic)': safe_get(physiology, ['metabolite antibiotic']),
+        'Group ID of combined antibiotics': safe_get(physiology, ['group ID of combined antibiotics']),
+        'has antibiotic function': safe_get(physiology, ['has antibiotic function']),
+        'Antibiotic sensitivity': safe_get(physiology, ['antibiotic sensitivity']),
+        'Antibiotic resistance': safe_get(physiology, ['antibiotic resistance']),
+        'Metabolite (production)': safe_get(physiology, ['metabolite production']),
+        'Production': safe_get(physiology, ['production']),
+        'Enzyme': safe_get(physiology, ['enzymes', 'value']),
+        'Enzyme activity': safe_get(physiology, ['enzymes', 'activity']),
+        'EC number': safe_get(physiology, ['enzymes', 'ec'])
+    }
 
     # Extract "Isolation, sampling and environmental information"
-    isolation = strain.get('Isolation, sampling and environmental information', {})
-    if isinstance(isolation, dict):
-        filtered_data['Isolation, sampling and environmental information'] = {
-            '16S_seq_accession': isolation.get('16S_seq_accession'),
-            'SeqIdentity': isolation.get('SeqIdentity'),
-            'Host species': isolation.get('host species'),
-            'Country': isolation.get('country')
-        }
+    isolation = safe_get(strain, ['Isolation, sampling and environmental information'], {})
+    filtered_data['Isolation, sampling and environmental information'] = {
+        '16S_seq_accession': safe_get(isolation, ['16S_seq_accession']),
+        'SeqIdentity': safe_get(isolation, ['SeqIdentity']),
+        'Host species': safe_get(isolation, ['host species']),
+        'Country': safe_get(isolation, ['country'])
+    }
 
     # Extract "Sequence information"
-    sequence_info = strain.get('Sequence information', {})
-    if isinstance(sequence_info, dict):
-        filtered_data['Sequence information'] = {
-            '16S seq. accession number': [seq.get('accession') for seq in sequence_info.get('16S sequences', [])],
-            'Genome seq. accession number': [genome.get('accession') for genome in sequence_info.get('Genome sequences', [])]
-        }
+    sequence_info = safe_get(strain, ['Sequence information'], {})
+    filtered_data['Sequence information'] = {
+        '16S seq. accession number': [safe_get(seq, ['accession']) for seq in safe_get(sequence_info, ['16S sequences'], [])],
+        'Genome seq. accession number': [safe_get(genome, ['accession']) for genome in safe_get(sequence_info, ['Genome sequences'], [])]
+    }
 
     # Extract "Antibiotic susceptibility testing"
-    antibiotic_testing = strain.get('Antibiotic susceptibility testing', {})
-    if isinstance(antibiotic_testing, dict):
-        filtered_data['Antibiotic susceptibility testing'] = antibiotic_testing
+    antibiotic_testing = safe_get(strain, ['Antibiotic susceptibility testing'], {})
+    filtered_data['Antibiotic susceptibility testing'] = antibiotic_testing
 
     # Extract "fatty acid profile"
-    fatty_acid_profile = strain.get('fatty acid profile', {})
-    if isinstance(fatty_acid_profile, dict):
-        filtered_data['fatty acid profile'] = fatty_acid_profile
+    fatty_acid_profile = safe_get(strain, ['fatty acid profile'], {})
+    filtered_data['fatty acid profile'] = fatty_acid_profile
 
     return filtered_data
+
 
 def fetch_metadata(bacdive_id):
     """Fetch metadata for a given BacDive ID using the initialized BacDive client."""
@@ -157,7 +160,9 @@ def fetch_metadata(bacdive_id):
             logging.info(f"No record found for BacDive ID {bacdive_id}.")
             return None
 
-        strain = next(client.retrieve())
+        strain = next(client.retrieve())  
+        print(json.dumps(strain, indent=4))  # Log the raw response for debugging
+
 
         # Filter out unwanted sections and keys
         filtered_strain = filter_metadata(strain)
@@ -175,7 +180,7 @@ def fetch_metadata(bacdive_id):
 def download_metadata_by_id_parallel():
     """Download metadata in parallel using multiple threads."""
     starting_id = get_checkpoint()
-    MAX_RECORDS = 100  # Limiting to 100 IDs for a quick test
+    MAX_RECORDS = 2  # Limiting to 100 IDs for a quick test
     batch_data = []
 
     with ThreadPoolExecutor(max_workers=5) as executor:  # Using 5 threads for testing
