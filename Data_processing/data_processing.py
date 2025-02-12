@@ -11,14 +11,14 @@ class TraitManager:
     def __init__(self):
         self.trait_mappings = {
             'gram': {
-                'mapping': {'positive': 'positive', 'negative': 'negative', 'nan': 'nan'},
+                'levels': {'positive': 'positive', 'negative': 'negative', 'nan': 'nan'},
                 'default_value': 'unknown'
             },
             'oxygen': {
-                'mapping': {
-                    'aerobic': 'aerobic', 'aerotolerant': 'aerobic', 'microaerophilic': 'aerobic',
-                    'obligate aerobic': 'aerobic', 'anaerobic': 'anaerobic', 'obligate anaerobic': 'anaerobic',
-                    'conflict': 'aerobic', 'facultative': 'aerobic'
+                'levels': {
+                    'aerobic': 'aerobic', 'aerotolerant': 'aerotolerant', 'microaerophilic': 'microaerophilic',
+                    'obligate aerobic': 'obligate aerobic', 'anaerobic': 'anaerobic', 'obligate anaerobic': 'obligate anaerobic',
+                    'conflict': 'aerobic', 'facultative': 'facultative'
                 },
                 'default_value': 'unknown'
             },
