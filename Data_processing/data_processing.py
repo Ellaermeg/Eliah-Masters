@@ -7,6 +7,7 @@ print(os.getcwd())
 from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import LabelEncoder
 
+
 class TraitManager:
     def __init__(self):
         self.trait_mappings = {
