@@ -195,7 +195,7 @@ class KOProcessor(DataProcessor):
             print("Error: Reduced traits data is not available.")
             return None
 
-        required_columns = ['key', 'speciesstrain', 'speciesstraincomp']
+        required_columns = ['key', 'speciesStrain', 'speciesStrainComp']
         missing_columns = [col for col in required_columns if col not in reduced_traits_data.columns]
 
         if missing_columns:
