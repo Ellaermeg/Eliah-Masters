@@ -257,48 +257,63 @@ class GOProcessor(DataProcessor):
 
 # Example Usage
 if __name__ == "__main__":
-    # Paths to data files
-    terms_zip_path = 'C:/Users/eliah/Documents/Master/Eliah-Masters/Datasets/terms_KO.zip'
-    terms_csv_path = 'terms_KO.csv'
-    traits_reduced_zip_path = 'C:/Users/eliah/Documents/Master/Eliah-Masters/Datasets/reducedDataset.zip'
-    traits_reduced_csv_path = 'reducedDataset.csv'
-    traits_assembled_zip_path = 'C:/Users/eliah/Documents/Master/Eliah-Masters/Datasets/assembledDataset.zip'
-    traits_assembled_csv_path = 'assembledDataset.csv'
+    # Configuration
+    config = {
+        'terms_zip': 'C:/Users/eliah/.../terms_KO.zip',
+        'terms_csv': 'terms_KO.csv',
+        'reduced_zip': 'C:/Users/eliah/.../reducedDataset.zip',
+        'reduced_csv': 'reducedDataset.csv',
+        'assembled_zip': 'C:/Users/eliah/.../assembledDataset.zip',
+        'assembled_csv': 'assembledDataset.csv',
+        'target_trait': 'gram',
+        'variance_threshold': 0.04
+    }
 
-    # Instantiate KOProcessor and load data
+    # Initialize processor
     processor = KOProcessor(
-        terms_zip_path=terms_zip_path, 
-        terms_csv_path=terms_csv_path, 
-        traits_reduced_zip_path=traits_reduced_zip_path, 
-        traits_reduced_csv_path=traits_reduced_csv_path, 
-        traits_assembled_zip_path=traits_assembled_zip_path, 
-        traits_assembled_csv_path=traits_assembled_csv_path
+        terms_zip_path=config['terms_zip'],
+        terms_csv_path=config['terms_csv'],
+        traits_reduced_zip_path=config['reduced_zip'],
+        traits_reduced_csv_path=config['reduced_csv'],
+        traits_assembled_zip_path=config['assembled_zip'],
+        traits_assembled_csv_path=config['assembled_csv']
     )
 
-    # Load and preprocess data
-    ko_terms = processor.load_terms()
-    if ko_terms is None:
-        raise FileNotFoundError("KO terms could not be loaded. Please check the file paths.")
+    try:
+        # Load data
+        ko_terms = processor.load_terms()
+        reduced_traits = processor.load_reduced_traits_data()
+        
+        # Preprocess data
+        X_terms = processor.preprocess_terms(ko_terms)
+        y_traits = processor.preprocess_traits(
+            reduced_traits, 
+            trait_column=config['target_trait'],
+            use_assembled_if_missing=True
+        )
 
-    reduced_traits_data = processor.load_reduced_traits_data()
-    if reduced_traits_data is None:
-        raise FileNotFoundError("Reduced traits data could not be loaded. Please check the file paths.")
+        # Validate data
+        if y_traits is None:
+            raise ValueError("Failed to process traits data")
 
-    # Preprocess KO terms and traits (trophy, gram, oxygen)
-    X_terms = processor.preprocess_terms(ko_terms)
-    y_traits = processor.preprocess_traits(reduced_traits_data, trait_column='trophy', use_assembled_if_missing=True)
+        # Align and select features
+        X_aligned, y_aligned = processor.align_data(X_terms, y_traits)
+        selector = VarianceThreshold(threshold=config['variance_threshold'])
+        X_selected = selector.fit_transform(X_aligned)
 
-    # Check if y_traits was processed correctly
-    if y_traits is None:
-        raise ValueError("Traits data could not be processed. Please check the log for errors.")
+        # Prepare final dataset
+        final_data = {
+            'features': X_selected,
+            'labels': y_aligned,
+            'feature_names': selector.get_feature_names_out(),
+            'label_name': config['target_trait']
+        }
 
-    # Align features and labels
-    X_aligned, y_aligned = processor.align_data(X_terms, y_traits)
+        print("\nPipeline executed successfully:")
+        print(f"- Final features shape: {final_data['features'].shape}")
+        print(f"- Final labels shape: {final_data['labels'].shape}")
+        print(f"- Features retained: {len(final_data['feature_names'])}")
 
-    # Feature Selection: Variance Threshold
-    selector = VarianceThreshold(threshold=0.04)
-    X_aligned = selector.fit_transform(X_aligned)
-
-    # Check results
-    print(f"Aligned X shape after feature selection: {X_aligned.shape}")
-    print(f"Aligned Y shape: {y_aligned.shape}")
+    except Exception as e:
+        print(f"\nPipeline failed: {str(e)}")
+        # Implement logging here
