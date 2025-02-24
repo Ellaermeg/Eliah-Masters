@@ -40,7 +40,7 @@ class TraitManager:
             print("Error: Reduced traits data is not available.")
             return None
 
-        required_columns = ['key', 'speciesstrain', 'speciesstraincomp']
+        required_columns = ['key', 'speciesStrain', 'speciesStrainComp']
         missing_columns = [col for col in required_columns if col not in reduced_traits_data.columns]
 
         if missing_columns:
@@ -53,7 +53,7 @@ class TraitManager:
             if use_assembled_if_missing:
                 traits_assembled = self.load_assembled_traits_data()
                 if traits_assembled is not None:
-                    required_assembled_columns = [trait_column, 'speciesstraincomp', 'database']
+                    required_assembled_columns = [trait_column, 'speciesStrainComp', 'database']
                     missing_assembled_columns = [col for col in required_assembled_columns if col not in traits_assembled.columns]
 
                     if missing_assembled_columns:
@@ -62,9 +62,9 @@ class TraitManager:
 
                     traits_assembled = traits_assembled.dropna(subset=[trait_column]).query("database == 'bacdive'")
                     reduced_traits_data = pd.merge(
-                        reduced_traits_data[['key', 'speciesstrain', 'speciesstraincomp']],
-                        traits_assembled[[trait_column, 'speciesstraincomp', 'database']],
-                        on='speciesstraincomp',
+                        reduced_traits_data[['key', 'speciesStrain', 'speciesStrainComp']],
+                        traits_assembled[[trait_column, 'speciesStrainComp', 'database']],
+                        on='speciesStrainComp',
                         how='inner'
                     )
                     print("Merged traits assembled data with reduced data.")
@@ -82,7 +82,8 @@ class TraitManager:
                 print(f"Warning: No data available after dropping NA for trait column '{trait_column}'.")
                 return None
 
-            processed_data = self.trait_manager.preprocess_trait(reduced_traits_data, trait_column)
+            # Process the trait column directly
+            processed_data = self._process_trait_column(reduced_traits_data, trait_column)
             if processed_data is not None and not processed_data.empty:
                 print(f"Processed traits for column '{trait_column}' successfully.")
                 return processed_data
@@ -92,6 +93,28 @@ class TraitManager:
         else:
             print(f"Error: Trait column '{trait_column}' not found in the reduced traits data after merging.")
             return None
+
+    def _process_trait_column(self, data, trait_column):
+        """
+        Helper method to process a specific trait column.
+
+        Parameters:
+        - data: DataFrame containing the trait column.
+        - trait_column: The column of the trait to process.
+
+        Returns:
+        - Processed DataFrame or Series.
+        """
+        if trait_column not in self.trait_mappings:
+            print(f"Warning: No mapping found for trait column '{trait_column}'. Returning raw data.")
+            return data[trait_column]
+
+        # Apply mappings if available
+        trait_info = self.trait_mappings[trait_column]
+        if 'levels' in trait_info:
+            # Map trait values to standardized levels
+            data[trait_column] = data[trait_column].map(trait_info['levels']).fillna(trait_info['default_value'])
+        return data[trait_column]
 
 class DataProcessor:
     def __init__(self, terms_zip_path=None, terms_csv_path=None, traits_reduced_zip_path=None, traits_reduced_csv_path=None, traits_assembled_zip_path=None, traits_assembled_csv_path=None):
@@ -205,7 +228,7 @@ class KOProcessor(DataProcessor):
         if trait_column not in reduced_traits_data.columns and use_assembled_if_missing:
             traits_assembled = self.load_assembled_traits_data()
             if traits_assembled is not None:
-                required_assembled_columns = [trait_column, 'speciesstraincomp', 'database']
+                required_assembled_columns = [trait_column, 'speciesStrainComp', 'database']
                 missing_assembled_columns = [col for col in required_assembled_columns if col not in traits_assembled.columns]
 
                 if missing_assembled_columns:
@@ -214,15 +237,15 @@ class KOProcessor(DataProcessor):
 
                 traits_assembled = traits_assembled.dropna(subset=[trait_column]).query("database == 'bacdive'")
                 reduced_traits_data = pd.merge(
-                    reduced_traits_data[['key', 'speciesstrain', 'speciesstraincomp']],
-                    traits_assembled[[trait_column, 'speciesstraincomp', 'database']],
-                    on='speciesstraincomp',
+                    reduced_traits_data[['key', 'speciesStrain', 'speciesStrainComp']],
+                    traits_assembled[[trait_column, 'speciesStrainComp', 'database']],
+                    on='speciesStrainComp',
                     how='inner'
                 )
 
         if trait_column in reduced_traits_data.columns:
             reduced_traits_data = reduced_traits_data.dropna(subset=[trait_column])
-            return self.trait_manager.preprocess_trait(reduced_traits_data, trait_column)
+            return self.trait_manager.preprocess_traits(reduced_traits_data, trait_column)  # Fixed method name
         else:
             print(f"Error: Trait column '{trait_column}' not found in the reduced traits data after merging.")
             return None
