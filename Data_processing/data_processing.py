@@ -17,9 +17,15 @@ class TraitManager:
             },
             'oxygen': {
                 'levels': {
-                    'aerobic': 'aerobic', 'aerotolerant': 'aerotolerant', 'microaerophilic': 'microaerophilic',
-                    'obligate aerobic': 'obligate aerobic', 'anaerobic': 'anaerobic', 'obligate anaerobic': 'obligate anaerobic',
-                    'conflict': 'aerobic', 'facultative': 'facultative'
+                    'aerobic': 'aerobic', 
+                    'aerotolerant': 'aerotolerant', 
+                    'microaerophilic': 'microaerophilic',
+                    'obligate aerobic': 'obligate_aerobic',  # Standardize naming
+                    'anaerobic': 'anaerobic', 
+                    'obligate anaerobic': 'obligate_anaerobic',
+                    'conflict': 'conflict',  # Explicitly handle conflicts
+                    'facultative': 'facultative',
+                    'facultative anaerobic': 'facultative'  # Map variants
                 },
                 'default_value': 'unknown'
             },
@@ -147,6 +153,18 @@ class TraitManager:
                     return self.trait_mappings['gram']['default_value']
                 
                 data[trait_column] = data[trait_column].apply(process_gram)
+
+            elif trait_column == 'oxygen':
+                # NEW: Handle comma-separated oxygen values (e.g., "aerobic,facultative")
+                def process_oxygen(x):
+                    x = str(x).lower()
+                    parts = [p.strip() for p in x.split(',')]
+                    for part in parts:
+                        if part in self.trait_mappings['oxygen']['levels']:
+                            return self.trait_mappings['oxygen']['levels'][part]
+                    return self.trait_mappings['oxygen']['default_value']
+                
+                data[trait_column] = data[trait_column].apply(process_oxygen)
             else:
                 # Standard mapping for other traits
                 data[trait_column] = data[trait_column].map(trait_info['levels']).fillna(trait_info['default_value'])
