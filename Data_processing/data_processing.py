@@ -24,7 +24,8 @@ class TraitManager:
                 'default_value': 'unknown'
             },
             'trophy': {
-                'levels': ['photo', 'chemo', 'litho', 'hetero', 'organo', 'auto']
+                'levels': {'photo', 'chemo', 'litho', 'hetero', 'organo', 'auto'},
+                'default_value': 'unknown'
             }
         }
 
