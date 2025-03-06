@@ -24,7 +24,14 @@ class TraitManager:
                 'default_value': 'unknown'
             },
             'trophy': {
-                'levels': {'photo', 'chemo', 'litho', 'hetero', 'organo', 'auto'},
+                'levels': {
+                    'photo': 'photo',
+                    'chemo': 'chemo',
+                    'litho': 'litho',
+                    'hetero': 'hetero',
+                    'organo': 'organo',
+                    'auto': 'auto'
+                },
                 'default_value': 'unknown'
             }
         }
@@ -87,8 +94,16 @@ class TraitManager:
             # Process the trait column directly
             processed_data = self._process_trait_column(reduced_traits_data, trait_column)
             if processed_data is not None and not processed_data.empty:
-                print(f"Processed traits for column '{trait_column}' successfully.")
-                return processed_data
+                # NEW: Aggregate labels by key to resolve conflicts
+                processed_df = pd.DataFrame({
+                    'key': reduced_traits_data['key'],
+                    trait_column: processed_data
+                })
+                aggregated = processed_df.groupby('key')[trait_column].agg(
+                    lambda x: x.value_counts().idxmax() if not x.empty else None
+                ).dropna()
+                print(f"Aggregated labels for '{trait_column}'. Unique keys: {len(aggregated)}")
+                return aggregated
             else:
                 print(f"Error processing traits for column '{trait_column}'. Processed data is empty or None.")
                 return None
@@ -99,23 +114,43 @@ class TraitManager:
     def _process_trait_column(self, data, trait_column):
         """
         Helper method to process a specific trait column.
-
-        Parameters:
-        - data: DataFrame containing the trait column.
-        - trait_column: The column of the trait to process.
-
-        Returns:
-        - Processed DataFrame or Series.
         """
         if trait_column not in self.trait_mappings:
             print(f"Warning: No mapping found for trait column '{trait_column}'. Returning raw data.")
             return data[trait_column]
 
-        # Apply mappings if available
         trait_info = self.trait_mappings[trait_column]
+        
         if 'levels' in trait_info:
-            # Map trait values to standardized levels
-            data[trait_column] = data[trait_column].map(trait_info['levels']).fillna(trait_info['default_value'])
+            if trait_column == 'trophy':
+                # Special handling for trophy to check substrings
+                def match_trophy(x):
+                    x = str(x).lower()
+                    for level in trait_info['levels']:
+                        if level in x:
+                            return trait_info['levels'][level]
+                    return trait_info['default_value']
+                
+                data[trait_column] = data[trait_column].apply(match_trophy)
+            else:
+                # Standard mapping for other traits
+                data[trait_column] = data[trait_column].map(trait_info['levels']).fillna(trait_info['default_value'])
+
+            if trait_column == 'gram':
+                # NEW: Split comma-separated values and resolve conflicts
+                def process_gram(x):
+                    x = str(x).lower()
+                    parts = [p.strip() for p in x.split(',')]
+                    for part in parts:
+                        if part in self.trait_mappings['gram']['levels']:
+                            return self.trait_mappings['gram']['levels'][part]
+                    return self.trait_mappings['gram']['default_value']
+                
+                data[trait_column] = data[trait_column].apply(process_gram)
+            else:
+                # Standard mapping for other traits
+                data[trait_column] = data[trait_column].map(trait_info['levels']).fillna(trait_info['default_value'])
+        
         return data[trait_column]
 
 class DataProcessor:
@@ -175,11 +210,11 @@ class DataProcessor:
         return X_terms
 
     def align_data(self, X, y):
-        """Aligns features and labels based on common keys."""
+        # Ensure y is a Series with unique keys
+        y = y[~y.index.duplicated(keep='first')]  # NEW: Remove duplicate keys
         common_keys = X.index.intersection(y.index)
         X_aligned = X.loc[common_keys]
         y_aligned = y.loc[common_keys]
-
         assert X_aligned.shape[0] == y_aligned.shape[0], "X and Y are not aligned"
         return X_aligned, y_aligned
 
@@ -259,7 +294,8 @@ class GOProcessor(DataProcessor):
 
 # Example Usage
 if __name__ == "__main__":
-    # Configuration
+    print("test")
+    '''# Configuration
     config = {
         'terms_zip': 'C:/Users/eliah/.../terms_KO.zip',
         'terms_csv': 'terms_KO.csv',
@@ -319,3 +355,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\nPipeline failed: {str(e)}")
         # Implement logging here
+'''
