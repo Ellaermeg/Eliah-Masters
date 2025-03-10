@@ -4,7 +4,7 @@ import csv
 import os
 import time
 from Bio import Entrez
-from API_cred import APICredentials
+from Supplementary_scripts.API_cred import APICredentials
 import logging
 
 # Initialize credentials from the class

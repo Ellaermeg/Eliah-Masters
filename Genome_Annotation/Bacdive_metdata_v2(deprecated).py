@@ -6,7 +6,7 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import requests
-from API_cred import APICredentials  
+from Supplementary_scripts.API_cred import APICredentials  
 
 # Initialize credentials
 creds = APICredentials()

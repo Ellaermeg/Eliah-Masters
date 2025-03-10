@@ -6,7 +6,7 @@ import time
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from bacdive import BacdiveClient
-from API_cred import APICredentials
+from Supplementary_scripts.API_cred import APICredentials
 
 # Initialize credentials from the class
 creds = APICredentials()
