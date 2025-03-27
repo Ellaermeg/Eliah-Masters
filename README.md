@@ -15,25 +15,7 @@ Key objectives:
 - Compare performance of various machine learning approaches
 
 ## Repository Structure
-<details>
-<summary>Repository Structure</summary>
-├── Data_processing/
-│ └── data_processing.py
-├── Datasets/
-│ ├── Terms_COG/
-│ ├── Terms_GO/
-│ ├── Terms_KO/
-│ ├── reduced_dataset/
-│ └── assembled_dataset/
-├── Genome_annotation/
-│ ├── Bacdive_metadata/
-│ └── Genome_download/
-└── Pipelines/
-├── Multilabel_pipeline/
-└── Single_feature_pipeline/
-
-Copy
-</details>
+Ellaermeg/Eliah-Masters ├── Data_processing/ │ └── data_processing.py ├── Datasets/ │ ├── Terms_COG/ │ ├── Terms_GO/ │ ├── Terms_KO/ │ ├── reduced_dataset/ │ └── assembled_dataset/ ├── Genome_annotation/ │ ├── Bacdive_metadata/ │ └── Genome_download/ └── Pipelines/ ├── Multilabel_pipeline/ └── Single_feature_pipeline
 
 
 ## Key Components
