@@ -17,33 +17,16 @@ Key objectives:
 ## Repository Structure
 ```markdown
 📦 Repository Structure
-├── 📂 .gitignore
 ├── 📂 Data_processing
     ├── 📜 data_processing.py
 ├── 📂 Datasets
     ├── 📂 assembledDataset.zip
-    ├── 📂 lib
     ├── 📂 reducedDataset.zip
     ├── 📂 terms_COG.zip
     ├── 📂 terms_GO.zip
     ├── 📂 terms_KO.zip
-    ├── 📂 terms_KO_nocomma.zip
-    ├── 📂 traits_indexed.csv
-├── 📂 GO, COGS, KO specific pipelines
-    ├── 📂 COGs
-        ├── 📜 COGs Gram.ipynb
-        ├── 📜 COGs.ipynb
-    ├── 📂 GO
-        ├── 📜 GO_OOP.ipynb
-        ├── 📜 GOs Groupedpipeline Gram.ipynb
-        ├── 📜 GOs Groupedpipeline.ipynb
-    ├── 📂 KOs
-        ├── 📂 Anaerobic & Aerobic
-        ├── 📂 Gramstaining_Grouped Pipeline.ipynb
-        ├── 📂 Trophy level grouped pipeline.ipynb
 ├── 📂 Genome_Annotation
     ├── 📜 Bacdive_metdata.py
-    ├── 📜 Bacdive_metdata_v2(deprecated).py
     ├── 📜 Genome_download.py
 ├── 📂 Pipelines
     ├── 📜 Multilabel_pipline.ipynb
