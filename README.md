@@ -15,9 +15,49 @@ Key objectives:
 - Compare performance of various machine learning approaches
 
 ## Repository Structure
-Ellaermeg/Eliah-Masters ├── Data_processing/ │ └── data_processing.py ├── Datasets/ │ ├── Terms_COG/ │ ├── Terms_GO/ │ ├── Terms_KO/ │ ├── reduced_dataset/ │ └── assembled_dataset/ ├── Genome_annotation/ │ ├── Bacdive_metadata/ │ └── Genome_download/ └── Pipelines/ ├── Multilabel_pipeline/ └── Single_feature_pipeline
-
-
+```markdown
+📦 Repository Structure
+├── 📂 .gitignore
+├── 📂 Data_processing
+    ├── 📜 data_processing.py
+├── 📂 Datasets
+    ├── 📂 assembledDataset.zip
+    ├── 📂 lib
+    ├── 📂 reducedDataset.zip
+    ├── 📂 terms_COG.zip
+    ├── 📂 terms_GO.zip
+    ├── 📂 terms_KO.zip
+    ├── 📂 terms_KO_nocomma.zip
+    ├── 📂 traits_indexed.csv
+├── 📂 GO, COGS, KO specific pipelines
+    ├── 📂 COGs
+        ├── 📜 COGs Gram.ipynb
+        ├── 📜 COGs.ipynb
+    ├── 📂 GO
+        ├── 📜 GO_OOP.ipynb
+        ├── 📜 GOs Groupedpipeline Gram.ipynb
+        ├── 📜 GOs Groupedpipeline.ipynb
+    ├── 📂 KOs
+        ├── 📂 Anaerobic & Aerobic
+        ├── 📂 Gramstaining_Grouped Pipeline.ipynb
+        ├── 📂 Trophy level grouped pipeline.ipynb
+├── 📂 Genome_Annotation
+    ├── 📜 Bacdive_metdata.py
+    ├── 📜 Bacdive_metdata_v2(deprecated).py
+    ├── 📜 Genome_download.py
+├── 📂 Pipelines
+    ├── 📜 Multilabel_pipline.ipynb
+    ├── 📜 Single_feature_pipeline.ipynb
+├── 📂 README.md
+├── 📂 Supplementary_scripts
+    ├── 📜 API_cred.py
+    ├── 📜 K_func.py
+    ├── 📜 Object_oriented_dataprocess.py
+    ├── 📜 REMOVER.ipynb
+    ├── 📜 bacdive_filtered_metadata.json
+    ├── 📜 metadata_checkpoint.txt
+    ├── 📜 metadata_download.log
+```
 ## Key Components
 
 ### [Data Processing](Data_processing/data_processing.py)
