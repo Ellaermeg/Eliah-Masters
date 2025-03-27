@@ -14,52 +14,54 @@ Key objectives:
 - Determine the most relevant annotation features for different traits
 - Compare performance of various machine learning approaches
 
-## Data Preparation
-### [Data Processing](Data_processing)
-- **Annotation Processing**: Scripts for handling KEGG, COG, and Gene Ontology annotations
-- **Trait Data Integration**: Integration of phenotypic data from PATRIC database
-- **Data Normalization**: Tools for handling imbalanced classes and data standardization
+## Repository Structure
+<details>
+<summary>Repository Structure</summary>
+├── Data_processing/
+│ └── data_processing.py
+├── Datasets/
+│ ├── Terms_COG/
+│ ├── Terms_GO/
+│ ├── Terms_KO/
+│ ├── reduced_dataset/
+│ └── assembled_dataset/
+├── Genome_annotation/
+│ ├── Bacdive_metadata/
+│ └── Genome_download/
+└── Pipelines/
+├── Multilabel_pipeline/
+└── Single_feature_pipeline/
+
+Copy
+</details>
+
+
+## Key Components
+
+### [Data Processing](Data_processing/data_processing.py)
+- Handles data cleaning and transformation
+- Merges phenotypic data with genomic annotations
+- Prepares datasets for machine learning
+
+### [Pipelines](Pipelines)
+- **Multilabel Pipeline**: For predicting multiple traits simultaneously
+- **Single Feature Pipeline**: For focused prediction of individual traits
+- Includes feature selection and model training steps
 
 ### [Datasets](Datasets)
-- Curated collection of microbial genomes with associated phenotypic traits
-- Preprocessed annotation matrices (KO, COG, GO terms)
-- Sample datasets for quick testing of pipelines
+- **Annotation Terms**: Processed COG, GO, and KO term matrices
+- **Reduced Dataset**: Subsampled data for quick testing
+- **Assembled Dataset**: Complete dataset for final analysis
 
-## Feature Selection
-### [Pipelines/feature_selection](Pipelines/feature_selection)
-- Statistical filtering using ANOVA and χ² tests
-- Tree-based feature importance analysis
-- Regularization techniques (L1/L2 normalization)
-- Dimensionality reduction with PCA and t-SNE
+### [Genome Annotation](Genome_annotation)
+- **BacDive Metadata**: Curated phenotypic trait data
+- **Genome Download**: Scripts for retrieving genomic data
 
-## Model Training
-### [Pipelines/model_training](Pipelines/model_training)
-- Implementation of various ML algorithms:
-  - Random Forest
-  - Gradient Boosting Machines (XGBoost)
-  - Support Vector Machines
-  - Logistic Regression
-- Hyperparameter optimization with GridSearchCV
-- Cross-validation strategies for small datasets
-- Model interpretation using SHAP values
-
-## Future Work
-- Expansion to uncultured microbiome trait prediction
-- Integration of deep learning approaches
-- Multi-task learning for correlated traits
-- Development of web-based prediction tool
-- Incorporation of metabolic pathway information
-
-## Repository Structure
-
-├── Pipelines/ # Machine learning workflows
-│ ├── feature_selection # Feature selection scripts
-│ └── model_training # Model training implementations
-├── Data_processing/ # Data cleaning and preprocessing
-└── Datasets/ # Sample data and annotation files
-
-
-
+## Usage
+1. Prepare data using `Data_processing/data_processing.py`
+2. Run either:
+   - `Pipelines/Multilabel_pipeline/` for multi-trait prediction
+   - `Pipelines/Single_feature_pipeline/` for individual trait analysis
 
 ## References
 1. Merkesvik, J. (2022). Towards genotype—phenotype association: Leveraging multiple-source microbial data and genome annotations to infer trait attributes for the uncultured microbiome. *NTNU Master's Thesis*.
@@ -68,9 +70,6 @@ Key objectives:
 4. Gene Ontology Consortium. (2000). *Nature Genetics*. https://doi.org/10.1038/75556
 5. Tatusov et al. (2000). The COG database. *NAR*. https://doi.org/10.1093/nar/28.1.33
 6. Hudgins, E.M. *Predicting Microbial Traits from Genome Annotations* (Current Thesis)
-
-## Contributing
-Contributions are welcome! Please open an issue first to discuss proposed changes.
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
