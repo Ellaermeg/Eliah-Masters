@@ -1,80 +1,59 @@
 import sys
 sys.path.append("../Eliah-Masters")
-import csv
-import os
-import time
-from Bio import Entrez
 from Supplementary_scripts.API_cred import APICredentials
-import logging
+import pandas as pd
+import urllib.request, urllib.parse, urllib.error
+import os
 
-# Initialize credentials from the class
-creds = APICredentials()
 
-# Set NCBI Entrez email and API key parameters
-Entrez.email = creds.EMAIL
-Entrez.api_key = creds.NCBI_API_KEY
+def load_ncbi_table(inputfile):
+    table = pd.read_csv(inputfile, sep='\t', index_col=0, dtype=str)
+    return table
 
-# Directory to save downloaded genomes
-OUTPUT_DIR = 'ncbi_genomes'
-os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Set up logging
-logging.basicConfig(filename='genome_download.log', level=logging.INFO, format='%(asctime)s %(message)s')
+def download_ncbi_genome(accession, refseq_table, prefer_protein=True, overwrite=False):
 
-# Function to download genome from NCBI
-def fetch_genome_from_ncbi(accession_number):
-    """Fetch genome sequence from NCBI using the accession number."""
-    try:
-        handle = Entrez.efetch(db="nucleotide", id=accession_number, rettype="fasta", retmode="text")
-        sequence_data = handle.read()
-        handle.close()
-        return sequence_data
-    except Exception as e:
-        print(f"Error fetching genome from NCBI: {e}")
-        logging.error(f"Error fetching genome from NCBI: {e}")
-        return None
+    if accession not in refseq_table.index:
+        print('Invalid accession code')
+        return
 
-# Function to download genomes based on metadata
-def download_genomes():
-    genomes_downloaded = 0
+    entry = refseq_table.loc[accession, :]
 
-    # Read metadata from CSV file
-    with open('bacdive_metadata.csv', 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            bacdive_id = row['BacDive_ID']
-            genus = row['Genus']
-            species = row['Species']
-            genome_accession = row['Genome_Accession']
+    downloaded = False
 
-            # Skip if accession number is not available
-            if genome_accession == '' or genome_accession == 'None':
-                print(f"No genome accession for BacDive ID {bacdive_id}. Skipping.")
-                logging.info(f"No genome accession for BacDive ID {bacdive_id}. Skipping.")
-                continue
+    if prefer_protein:
+        url = 'https://{}/{}_protein.faa.gz'.format(
+            entry['ftp_path'][6:], entry['ftp_path'].split('/')[-1])
 
-            print(f"Fetching genome for BacDive ID {bacdive_id} with accession number {genome_accession}")
-            logging.info(f"Fetching genome for BacDive ID {bacdive_id} with accession number {genome_accession}")
+        outputfile = '{}.faa.gz'.format(accession)
 
-            genome_data = fetch_genome_from_ncbi(genome_accession)
+        if os.path.exists(outputfile) and not overwrite:
+            print('File exists, skipping.')
+            return outputfile
 
-            if genome_data:
-                # Construct output file path
-                file_name = f"{genus}_{species}_{bacdive_id}.fasta".replace(' ', '_')
-                output_path = os.path.join(OUTPUT_DIR, file_name)
+        _, result = urllib.request.urlretrieve(url, outputfile)
 
-                # Save the genome sequence
-                with open(output_path, 'w') as genome_file:
-                    genome_file.write(genome_data)
-                    print(f"Saved genome for BacDive ID {bacdive_id} to {output_path}")
-                    logging.info(f"Saved genome for BacDive ID {bacdive_id} to {output_path}")
-                    genomes_downloaded += 1
+        if result.get_content_type() != 'application/x-gzip':
+            os.remove(outputfile)
+        else:
+            downloaded = True
 
-                # Add a delay to prevent NCBI rate limiting
-                time.sleep(1)
+    if not downloaded:
+        url = 'https://{}/{}_genomic.fna.gz'.format(
+            entry['ftp_path'][6:], entry['ftp_path'].split('/')[-1])
 
-    print(f"Genome download complete. Total genomes downloaded: {genomes_downloaded}")
-    logging.info(f"Genome download complete. Total genomes downloaded: {genomes_downloaded}")
+        outputfile = '{}.fna.gz'.format(accession)
 
-if __name__ == '__main__':
-    download_genomes()
+        if os.path.exists(outputfile) and not overwrite:
+            print('File exists, skipping.')
+            return outputfile
+
+        _, result = urllib.request.urlretrieve(url, outputfile)
+
+        if result.get_content_type() != 'application/x-gzip':
+            os.remove(outputfile)
+        else:
+            downloaded = True
+
+    if downloaded:
+        return outputfile
