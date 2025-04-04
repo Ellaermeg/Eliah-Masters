@@ -5,7 +5,8 @@ Improved BacDive TSV Merger
 This script merges multiple TSV files from BacDive into a single comprehensive CSV file.
 It ensures data integrity by properly handling strain identifiers and merging related data.
 """
-
+import sys
+sys.path.append("../Eliah-Masters")
 import pandas as pd
 import zipfile
 import os
@@ -203,7 +204,7 @@ def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
     # Use the original zip file with absolute path
-    zip_path = '/home/ubuntu/thesis/Eliah-Masters/Datasets/tsv.zip'
+    zip_path = os.path.join(current_dir, '..', 'Datasets', 'tsv.zip')
     
     if not os.path.isfile(zip_path):
         logging.error(f"Could not find TSV zip file at {zip_path}")
