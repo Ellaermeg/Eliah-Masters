@@ -86,8 +86,8 @@ else:
         merged_df = merged_df.loc[:, ~merged_df.columns.str.endswith('_DROP')]
     
     # Final cleaning
-    merged_df = merged_df.fillna("unknown")
-    merged_df = merged_df.replace(["", "nan", "NaN"], "unknown")
+    merged_df = merged_df.fillna("-")
+    merged_df = merged_df.replace(["", "nan", "NaN"], "-")
     
     # Save result
     output_path = os.path.join(current_dir, 'merged_bacdive_data.csv')
