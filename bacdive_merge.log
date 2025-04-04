@@ -1,0 +1,9 @@
+2025-04-04 21:25:01,813 - INFO - ==================================================
+2025-04-04 21:25:01,813 - INFO - Starting BacDive merge process at 2025-04-04 21:25:01
+2025-04-04 21:25:01,814 - INFO - Found 46 files in zip archive
+2025-04-04 21:25:01,815 - INFO - Processing file 2/46: tsv/bacdive_16S.tsv
+2025-04-04 21:25:01,851 - INFO - Processing file: tsv/bacdive_16S.tsv
+2025-04-04 21:25:08,517 - INFO - File tsv/bacdive_16S.tsv has 10 columns
+2025-04-04 21:25:08,800 - INFO - Processed 108378 rows from tsv/bacdive_16S.tsv
+2025-04-04 21:25:08,837 - INFO - Processing file 3/46: tsv/bacdive_cellMorphology.tsv
+2025-04-04 21:25:08,860 - INFO - Processing file: tsv/bacdive_cellMorphology.tsv
