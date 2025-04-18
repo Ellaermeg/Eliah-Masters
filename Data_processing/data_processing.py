@@ -305,11 +305,6 @@ class KOProcessor(DataProcessor):
             print(f"Error: Trait column '{trait_column}' not found in the reduced traits data after merging.")
             return None
 
-class GOProcessor(DataProcessor):
-    def preprocess_terms(self, terms_data):
-        """Processes GO terms using the generic feature preprocessing method."""
-        return self.preprocess_features(terms_data, 'GO')
-
 # Example Usage
 if __name__ == "__main__":
     print("test")
