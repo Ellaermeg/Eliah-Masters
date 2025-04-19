@@ -7,6 +7,47 @@ from sklearn.feature_selection import VarianceThreshold
 from sklearn.preprocessing import LabelEncoder
 
 class TraitManager:
+    """
+    TraitManager is a utility class designed to preprocess and standardize trait data 
+    from a given dataset. It provides methods to detect delimiters, split and standardize 
+    entries, and preprocess trait columns in a structured manner.
+    Methods:
+    --------
+    - __init__():
+        Initializes the TraitManager instance with default values.
+    - detect_delimiter(series):
+        Detects the most frequently occurring delimiter in a pandas Series.
+        Parameters:
+            series (pd.Series): The input series containing string entries.
+        Returns:
+            str or None: The detected delimiter or None if no delimiter is found.
+    - split_and_standardize(entry, delimiter):
+        Splits a string entry using the specified delimiter and standardizes the tokens.
+        Parameters:
+            entry (str): The input string to be processed.
+            delimiter (str): The delimiter to split the string.
+        Returns:
+            list: A list of standardized tokens.
+    - preprocess_traits(reduced_traits_data, trait_column, use_assembled_if_missing=False):
+        Preprocesses a trait column in the given dataset, handling missing data and 
+        merging with assembled traits data if necessary.
+        Parameters:
+            reduced_traits_data (pd.DataFrame): The input dataset containing trait data.
+            trait_column (str): The name of the trait column to preprocess.
+            use_assembled_if_missing (bool): Whether to use assembled traits data if the 
+                                             trait column is missing. Default is False.
+        Returns:
+            pd.Series or None: A series of aggregated labels for the trait column, or None 
+                               if preprocessing fails.
+    - _process_trait_column(data, trait_column):
+        Processes a specific trait column by detecting delimiters, splitting, and 
+        standardizing the entries.
+        Parameters:
+            data (pd.DataFrame): The input dataset containing the trait column.
+            trait_column (str): The name of the trait column to process.
+        Returns:
+            pd.Series: A series of processed trait values.
+    """
     def __init__(self):
         self.default_value = 'unknown'
 
@@ -114,6 +155,58 @@ class TraitManager:
         return processed
 
 class DataProcessor:
+    """
+    DataProcessor is a class designed to handle data processing tasks, including loading data from zip files,
+    preprocessing features, aligning data, and checking data consistency.
+    Attributes:
+        terms_zip_path (str): Path to the zip file containing terms data.
+        terms_csv_path (str): Path to the CSV file inside the terms zip file.
+        traits_reduced_zip_path (str): Path to the zip file containing reduced traits data.
+        traits_reduced_csv_path (str): Path to the CSV file inside the reduced traits zip file.
+        traits_assembled_zip_path (str): Path to the zip file containing assembled traits data.
+        traits_assembled_csv_path (str): Path to the CSV file inside the assembled traits zip file.
+        trait_manager (TraitManager): An instance of the TraitManager class for managing traits.
+    Methods:
+        load_data_from_zip(zip_path, csv_path):
+            Loads data from a specified zip file and CSV file path.
+            Args:
+                zip_path (str): Path to the zip file.
+                csv_path (str): Path to the CSV file inside the zip file.
+            Returns:
+                pd.DataFrame: Loaded data as a pandas DataFrame, or None if an error occurs.
+        load_terms():
+            Loads terms data using the specified terms zip and CSV paths.
+            Returns:
+                pd.DataFrame: Loaded terms data as a pandas DataFrame, or None if an error occurs.
+        load_reduced_traits_data():
+            Loads reduced traits data using the specified zip and CSV paths.
+            Returns:
+                pd.DataFrame: Loaded reduced traits data as a pandas DataFrame, or None if an error occurs.
+        load_assembled_traits_data():
+            Loads assembled traits data using the specified zip and CSV paths.
+            Returns:
+                pd.DataFrame: Loaded assembled traits data as a pandas DataFrame, or None if an error occurs.
+        preprocess_features(terms_data, column_name):
+            Preprocesses features by pivoting the terms data into a feature matrix.
+            Args:
+                terms_data (pd.DataFrame): DataFrame containing terms data.
+                column_name (str): Column name to use for pivoting.
+            Returns:
+                pd.DataFrame: Feature matrix with keys as rows and column_name as columns.
+        align_data(X, y):
+            Aligns the feature matrix (X) and target labels (y) by their common indices.
+            Args:
+                X (pd.DataFrame): Feature matrix.
+                y (pd.Series): Target labels.
+            Returns:
+                tuple: Aligned feature matrix (X_aligned) and target labels (y_aligned).
+        data_checker(Y_aligned):
+            Checks the distribution and encoding of target labels.
+            Args:
+                Y_aligned (pd.Series): Aligned target labels.
+            Returns:
+                tuple: Encoded labels (Y_encoded) and class distribution (pd.Series).
+    """
     def __init__(self, terms_zip_path=None, terms_csv_path=None, traits_reduced_zip_path=None, traits_reduced_csv_path=None, traits_assembled_zip_path=None, traits_assembled_csv_path=None):
         self.terms_zip_path = terms_zip_path
         self.terms_csv_path = terms_csv_path
@@ -182,17 +275,43 @@ class DataProcessor:
         return Y_encoded, class_distribution
 
 class KOProcessor(DataProcessor): 
+    """
+    A processor class for handling KO (KEGG Orthology) data, extending the functionality
+    of the base `DataProcessor` class. This class provides methods for preprocessing
+    terms and traits data specific to KO.
+    Methods
+    -------
+    preprocess_terms(terms_data):
+        Preprocesses the given terms data for KO features.
+    preprocess_traits(reduced_traits_data, trait_column, use_assembled_if_missing=False):
+        Preprocesses the given reduced traits data for a specific trait column. If the
+        trait column is missing and `use_assembled_if_missing` is True, attempts to
+        load and merge assembled traits data to fill in the missing information.
+        Parameters
+        ----------
+        reduced_traits_data : pandas.DataFrame
+            The reduced traits data to preprocess. Must contain specific required columns.
+        trait_column : str
+            The name of the trait column to preprocess.
+        use_assembled_if_missing : bool, optional
+            Whether to use assembled traits data to fill in missing trait column data
+            (default is False).
+        Returns
+        -------
+        pandas.DataFrame or None
+            The preprocessed traits data if successful, or None if an error occurs.
+        Notes
+        -----
+        - If required columns are missing in the input data, an error message is printed
+          and the method returns None.
+        - If the trait column is missing and `use_assembled_if_missing` is True, the method
+          attempts to load assembled traits data, validate its structure, and merge it
+          with the input data.
+        - If the trait column is still not found after merging, an error message is printed
+          and the method returns None.
+    """
     def preprocess_terms(self, terms_data):
         return self.preprocess_features(terms_data, 'KO')
-
-        """
-        Processes traits data from the reduced dataset, optionally integrating the assembled dataset if the trait is missing.
-
-        Parameters:
-        - reduced_traits_data: DataFrame containing traits from the reduced dataset.
-        - trait_column: The column of the trait that we want to process.
-        - use_assembled_if_missing: Boolean to decide whether to use the assembled dataset if the trait column is missing.
-        """
 
     def preprocess_traits(self, reduced_traits_data, trait_column, use_assembled_if_missing=False):
         if reduced_traits_data is None:
