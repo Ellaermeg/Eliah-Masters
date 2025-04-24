@@ -330,7 +330,7 @@ class KOProcessor(DataProcessor):
                 if missing_assembled_columns:
                     print(f"Error: Missing columns {missing_assembled_columns} in the assembled traits data.")
                     return None
-                traits_assembled = traits_assembled.dropna(subset=[trait_column]).query("database == 'bacdive'")
+                traits_assembled = traits_assembled.dropna(subset=[trait_column]).query("database in ['bacdive', 'corkrey']")
                 reduced_traits_data = pd.merge(
                     reduced_traits_data[['key', 'speciesStrain', 'speciesStrainComp']],
                     traits_assembled[[trait_column, 'speciesStrainComp', 'database']],
