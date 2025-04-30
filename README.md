@@ -56,6 +56,7 @@ Key objectives:
         ├── 📂 Performance plots
         ├── 📂 Trophy level grouped pipeline.ipynb
 ├── 📂 Supplementary_scripts
+```
 ## Key Components
 
 ### [Data Processing](Data_processing/data_processing.py)
