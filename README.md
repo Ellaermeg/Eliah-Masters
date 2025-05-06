@@ -9,7 +9,7 @@ Master's Thesis Project: Machine learning pipelines for predicting microbial phe
 This repository contains code and analysis for predicting microbial traits from genome annotations, developed as part of a master's thesis project. The project aims to leverage machine learning techniques to predict measurable microbial traits (cell morphology, gram status, oxygen tolerance, nutrient requirements, etc.) based on functional genome annotations from databases like KEGG, COG, and Gene Ontology.
 
 Key objectives:
-- Develop automated pipelines for microbial trait prediction
+- Develop automated pipeline for microbial trait prediction
 - Identify which traits can be reliably predicted from genomic data
 - Determine the most relevant annotation features for different traits
 - Compare performance of various machine learning approaches
@@ -17,29 +17,45 @@ Key objectives:
 ## Repository Structure
 ```markdown
 📦 Repository Structure
+├── 📂 .gitignore
 ├── 📂 Data_processing
-    ├── 📜 data_processing.py
+    ├── 📂 Bacdive_Data_merge.py
+    ├── 📂 Data_analysis figures
+    ├── 📂 Data_analysis.ipynb
+    ├── 📂 data_processing.py
 ├── 📂 Datasets
+    ├── 📂 Diagrams
     ├── 📂 assembledDataset.zip
     ├── 📂 reducedDataset.zip
     ├── 📂 terms_COG.zip
     ├── 📂 terms_GO.zip
     ├── 📂 terms_KO.zip
+    ├── 📂 tsv.zip
 ├── 📂 Genome_Annotation
-    ├── 📜 Bacdive_metdata.py
-    ├── 📜 Genome_download.py
+    ├── 📂 Genome_download.py
+    ├── 📂 custom_annotation.py
+    ├── 📂 genome_annotation_slurm.sh
 ├── 📂 Pipelines
-    ├── 📜 Multilabel_pipline.ipynb
-    ├── 📜 Single_feature_pipeline.ipynb
+    ├── 📂 Binarylabel_pipeline.ipynb
+    ├── 📂 Multilabel figures
+    ├── 📂 Multilabel_pipline.ipynb
 ├── 📂 README.md
+├── 📂 Specific pipelines
+    ├── 📂 COGs
+        ├── 📂 COGs Gram.ipynb
+        ├── 📂 COGs.ipynb
+        ├── 📂 Performance
+    ├── 📂 GO
+        ├── 📂 GO_OOP.ipynb
+        ├── 📂 GOs Groupedpipeline Gram.ipynb
+        ├── 📂 GOs Groupedpipeline.ipynb
+        ├── 📂 Performance plots
+    ├── 📂 KOs
+        ├── 📂 Anaerobic & Aerobic
+        ├── 📂 Gramstaining_Grouped Pipeline.ipynb
+        ├── 📂 Performance plots
+        ├── 📂 Trophy level grouped pipeline.ipynb
 ├── 📂 Supplementary_scripts
-    ├── 📜 API_cred.py
-    ├── 📜 K_func.py
-    ├── 📜 Object_oriented_dataprocess.py
-    ├── 📜 REMOVER.ipynb
-    ├── 📜 bacdive_filtered_metadata.json
-    ├── 📜 metadata_checkpoint.txt
-    ├── 📜 metadata_download.log
 ```
 ## Key Components
 
@@ -58,9 +74,6 @@ Key objectives:
 - **Reduced Dataset**: Subsampled data for quick testing
 - **Assembled Dataset**: Complete dataset for final analysis
 
-### [Genome Annotation](Genome_annotation)
-- **BacDive Metadata**: Curated phenotypic trait data
-- **Genome Download**: Scripts for retrieving genomic data
 
 ## Usage
 1. Prepare data using `Data_processing/data_processing.py`
