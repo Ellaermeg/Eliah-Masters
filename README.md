@@ -67,6 +67,7 @@ Key objectives:
 ### [Pipelines](Pipelines)
 - **Multilabel Pipeline**: For predicting multiple traits simultaneously
 - **Single Feature Pipeline**: For focused prediction of individual traits
+- **Specific pipelines**: For predicting traits using either GOs, COGs or KOs as genomeanntations. These are trait specific
 - Includes minimal feature selection and model training steps
 
 ### [Datasets](Datasets)
