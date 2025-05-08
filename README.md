@@ -67,7 +67,7 @@ Key objectives:
 ### [Pipelines](Pipelines)
 - **Multilabel Pipeline**: For predicting multiple traits simultaneously
 - **Single Feature Pipeline**: For focused prediction of individual traits
-- Includes feature selection and model training steps
+- Includes minimal feature selection and model training steps
 
 ### [Datasets](Datasets)
 - **Annotation Terms**: Processed COG, GO, and KO term matrices
