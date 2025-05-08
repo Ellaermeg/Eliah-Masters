@@ -85,9 +85,9 @@ Key objectives:
 ## References
 1. Merkesvik, J. (2022). Towards genotype—phenotype association: Leveraging multiple-source microbial data and genome annotations to infer trait attributes for the uncultured microbiome. *NTNU Master's Thesis*.
 2. Weimann et al. (2016). From genomes to phenotypes: Traitar, the microbial trait analyzer. *mSystems*. https://doi.org/10.1128/msystems.00101-16
-3. Davis et al. (2020). The PATRIC Bioinformatics Resource Center. *NAR*. https://doi.org/10.1093/nar/gkz943
-4. Gene Ontology Consortium. (2000). *Nature Genetics*. https://doi.org/10.1038/75556
-5. Tatusov et al. (2000). The COG database. *NAR*. https://doi.org/10.1093/nar/28.1.33
+3. Gene Ontology Consortium. (2000). *Nature Genetics*. https://doi.org/10.1038/75556
+4. Tatusov et al. (2000). The COG database. *NAR*. https://doi.org/10.1093/nar/28.1.33
+5. Kanehisa, Minoru, et al. (2016) KEGG as a Reference Resource for Gene and Protein Annotation. “Nucleic Acids Research”. https://doi.org/10.1093/nar/gkv1070.
 6. Hudgins, E.M. *Predicting Microbial Traits from Genome Annotations* (Current Thesis)
 
 ## License
